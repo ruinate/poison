@@ -45,19 +45,19 @@ func (c *CheckAPP) CheckAutoMode(mode string) [][2]interface{} {
 	switch mode {
 	case "TCP":
 		{
-			return Output.OutputTCP()
+			return Output.Execute("TCP")
 		}
 	case "UDP":
 		{
-			return Output.OutputUDP()
+			return Output.Execute("UDP")
 		}
 	case "ICS":
 		{
-			return Output.OutputICS()
+			return Output.Execute("ICS")
 		}
 	case "BLACK":
 		{
-			return Output.OutputBLACK()
+			return Output.Execute("BLACK")
 		}
 	default:
 		c.CheckExit("Please check format of send mode: e.g. \"TCP\",\"UDP\",BLACK,ICS")
@@ -163,6 +163,15 @@ func (c *CheckAPP) CheckDDosMode(mode string) {
 	default:
 		c.CheckExit("Please check format of Server mode: e.g. \"TCP\", \"UDP\",\"ICMP\" ")
 	}
+}
+
+func (c *CheckAPP) CheckDepthSum(config *ProtoAPP) bool {
+	config.Depth -= 1
+	if config.Depth == 0 {
+		Check.CheckDebug(config.Mode + " Task execution completed......")
+	}
+	return true
+
 }
 
 var Check CheckAPP

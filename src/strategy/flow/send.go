@@ -4,7 +4,6 @@ import (
 	"PoisonFlow/src/utils"
 	"fmt"
 	"github.com/spf13/cobra"
-	"log"
 	"time"
 )
 
@@ -24,27 +23,19 @@ var Send = &cobra.Command{
 type SendAPP struct{}
 
 // Execute Send执行方法
-func (s *SendAPP) Execute(config *utils.ProtoAPP) SendAPP {
+func (s *SendAPP) Execute(config *utils.ProtoAPP) *SendAPP {
 	time.Sleep(time.Millisecond * 300)
 	if config.Depth != 0 {
-		p, err := config.RUN(config)
-		if err != nil {
-			utils.LogError(err)
-		} else {
-			log.Println(p.Result)
+		p, err := config.Execute(config)
+		utils.LogDebug(p, err)
+		status := utils.Check.CheckDepthSum(config)
+		if status {
+			return s.Execute(config)
 		}
-		config.Depth -= 1
-		if config.Depth == 0 {
-			utils.Check.CheckDebug(config.Mode + " Task execution completed......")
-		}
-		return s.Execute(config)
+		return nil
 	} else {
-		p, err := config.RUN(config)
-		if err != nil {
-			utils.LogError(err)
-		} else {
-			log.Println(p.Result)
-		}
+		p, err := config.Execute(config)
+		utils.LogDebug(p, err)
 		return s.Execute(config)
 	}
 

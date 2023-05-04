@@ -7,17 +7,19 @@ import (
 	"time"
 )
 
-// Send 执行方法
-var Send = &cobra.Command{
-	Use:   "send firewall",
-	Short: "发送数据包：TCP、UDP",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		config := utils.Check.CheckSend(&utils.Config)
-		fmt.Println("Send is running...")
-		SEND.Execute(config)
-	},
-}
+var (
+	// Send 执行方法
+	Send = &cobra.Command{
+		Use:   "send [tab][tab]",
+		Short: "发送数据包：TCP、UDP",
+		Long:  ``,
+		Run: func(cmd *cobra.Command, args []string) {
+			config := utils.Check.CheckSend(&utils.Config)
+			fmt.Println("Send is running...")
+			SEND.Execute(config)
+		},
+	}
+)
 
 // SendAPP 结构体
 type SendAPP struct{}

@@ -4,24 +4,22 @@ import (
 	"PoisonFlow/src/utils"
 	"fmt"
 	"github.com/spf13/cobra"
-	"sync"
 	"time"
 )
 
-// wg  协程锁
-var wg sync.WaitGroup
-
-// Auto 执行命令
-var Auto = &cobra.Command{
-	Use:   "auto firewall",
-	Short: "自动发送：TCP、UDP、BLACK、ICS",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		payload := utils.Check.CheckAuto(&utils.Config)
-		fmt.Printf("Auto  Mode %s is running...\n", utils.Config.Mode)
-		AUTO.AutoExecute(&utils.Config, payload)
-	},
-}
+var (
+	// Auto 执行命令
+	Auto = &cobra.Command{
+		Use:   "auto [tab][tab]",
+		Short: "自动发送：TCP、UDP、BLACK、ICS",
+		Long:  ``,
+		Run: func(cmd *cobra.Command, args []string) {
+			payload := utils.Check.CheckAuto(&utils.Config)
+			fmt.Printf("Auto  Mode %s is running...\n", utils.Config.Mode)
+			AUTO.AutoExecute(&utils.Config, payload)
+		},
+	}
+)
 
 type auto struct {
 }

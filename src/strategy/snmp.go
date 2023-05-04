@@ -8,30 +8,32 @@ import (
 	"time"
 )
 
-// Snmp 执行方法
-var Snmp = &cobra.Command{
-	Use:   "snmp firewall",
-	Short: "SNMP 客户端连接测试",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		config := utils.Check.CheckSnmp(&utils.Config)
-		SNMPVersion := [...]string{"v1", "v2", "v3"}
-		for _, version := range SNMPVersion {
-			// 获取客户端
-			client := SNMP.SNMPClient(version, config)
-			if client != nil {
-				// 执行方法
-				s, err := SNMP.SNMPExecute(client)
-				if err != nil {
-					log.Printf("snmp: %s   result: %s            \n", version, err.Error())
-				} else {
-					log.Printf("snmp: %s   result: %s            \n", version, s.result)
+var (
+	// Snmp 执行方法
+	Snmp = &cobra.Command{
+		Use:   "snmp [tab][tab]",
+		Short: "SNMP 客户端连接测试",
+		Long:  ``,
+		Run: func(cmd *cobra.Command, args []string) {
+			config := utils.Check.CheckSnmp(&utils.Config)
+			SNMPVersion := [...]string{"v1", "v2", "v3"}
+			for _, version := range SNMPVersion {
+				// 获取客户端
+				client := SNMP.SNMPClient(version, config)
+				if client != nil {
+					// 执行方法
+					s, err := SNMP.SNMPExecute(client)
+					if err != nil {
+						log.Printf("snmp: %s   result: %s            \n", version, err.Error())
+					} else {
+						log.Printf("snmp: %s   result: %s            \n", version, s.result)
+					}
 				}
+				time.Sleep(time.Millisecond * 300)
 			}
-			time.Sleep(time.Millisecond * 500)
-		}
-	},
-}
+		},
+	}
+)
 
 type snmp struct {
 	result string

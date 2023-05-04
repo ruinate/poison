@@ -11,16 +11,18 @@ import (
 	"syscall"
 )
 
-// Server 执行方法
-var Server = &cobra.Command{
-	Use:   "server firewall",
-	Short: "服务端：监听端口默认全部",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		config := utils.Check.CheckServer(&utils.Config)
-		server.Execute(config)
-	},
-}
+var (
+	// Server 执行方法
+	Server = &cobra.Command{
+		Use:   "server [tab][tab]",
+		Short: "服务端：监听端口默认全部",
+		Long:  ``,
+		Run: func(cmd *cobra.Command, args []string) {
+			config := utils.Check.CheckServer(&utils.Config)
+			server.Execute(config)
+		},
+	}
+)
 
 type ServerApp struct {
 }

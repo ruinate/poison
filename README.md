@@ -16,6 +16,10 @@
     insatll-
     bash build.sh
     
+    命令行 tab联想
+    ./poison completion bash > completion.env
+     source completion.env
+    
 
 #### 使用说明
 

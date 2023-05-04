@@ -11,8 +11,9 @@ import (
 )
 
 var (
+	// DDOS 执行方法
 	DDOS = &cobra.Command{
-		Use:   "ddos firewall",
+		Use:   "ddos [tab][tab]",
 		Short: "安全防护",
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {

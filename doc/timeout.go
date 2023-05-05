@@ -12,6 +12,7 @@ import (
 
 func main() {
 	timeout := time.After(time.Second * 10)
+
 	finish := make(chan bool)
 	count := 1
 	go func() {

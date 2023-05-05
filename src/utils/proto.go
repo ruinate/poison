@@ -1,6 +1,5 @@
 package utils
 
-import "C"
 import (
 	"encoding/hex"
 	"fmt"
@@ -118,7 +117,7 @@ func (p *ProtoAPP) Execute(config *ProtoAPP) (*ProtoAPP, error) {
 		}
 	case "ICS":
 		{
-			// 协程UDPe
+			// 协程UDP
 			go func() {
 				p, err := p.UDP(address, config)
 				LogDebug(p, err)

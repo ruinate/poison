@@ -17,8 +17,11 @@
     bash build.sh
     
     命令行 tab联想
-    ./poison completion bash > completion.env
-     source completion.env
+    mv poison /usr/local/bin/
+    poison completion bash > poison_completion
+    mv poison_completion /etc/bash_completion.d/
+    source /etc/bash_completion.d/poison_completion
+
     
 
 #### 使用说明

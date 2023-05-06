@@ -2,13 +2,15 @@ package strategy
 
 import (
 	"PoisonFlow/src/utils"
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/syossan27/tebata"
-	"log"
 	"net"
+	"os"
+	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 )
 
 var (
@@ -31,8 +33,8 @@ var buf = make([]byte, 1024)
 
 // Execute 监听执行
 func (s *ServerApp) Execute(config *utils.ProtoAPP) {
-	log.Println("server Host :", config.Host)
-	log.Println("server Port  mode is ", config.Mode)
+	logrus.Infoln("server Host :", config.Host)
+	logrus.Infoln("server Port  mode is ", config.Mode)
 	t := tebata.New(syscall.SIGINT, syscall.SIGTERM)
 	for port := 1; port < 65535; {
 		port++
@@ -47,6 +49,8 @@ func (s *ServerApp) Execute(config *utils.ProtoAPP) {
 
 // ExecuteListen  监听主程序
 func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Tebata) error {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	if protocol == "TCP" {
 		conn, err := net.Listen("tcp", address+":"+port)
 		if err != nil {
@@ -61,7 +65,7 @@ func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Teba
 			results, _ := TCPServer.Read(buf)
 			_, _ = TCPServer.Write(buf[:results])
 			s.Close(TCPServer)
-			log.Printf("%s -> %s", TCPServer.RemoteAddr(), TCPServer.LocalAddr())
+			logrus.Printf("%s -> %s", TCPServer.RemoteAddr(), TCPServer.LocalAddr())
 		}
 	} else {
 		port, _ := strconv.Atoi(port)
@@ -73,22 +77,22 @@ func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Teba
 			return err
 		}
 		for {
-			// 读取消息，UDP不是面向连接的因此不需要等待连接
-			length, udpAddr, err := UDPServer.ReadFromUDP(buf)
-			if err != nil {
-				log.Printf("Read from udp server:%s failed,err:%s", udpAddr, err)
-				break
+			select {
+			case <-time.After(0 * time.Millisecond):
+				// 读取消息，UDP不是面向连接的因此不需要等待连接
+				length, udpAddr, err := UDPServer.ReadFromUDP(buf)
+				if err != nil {
+					break
+				}
+				_, err = UDPServer.WriteToUDP(buf[:length], udpAddr)
+				s.Close(UDPServer)
+				logrus.Printf("%s -> %s", udpAddr, UDPServer.LocalAddr())
+			case s := <-sigs:
+				logrus.Errorf("received signal %s, exiting", s.String())
+				os.Exit(0)
 			}
-			_, err = UDPServer.WriteToUDP(buf[:length], udpAddr)
-			if err != nil {
-				fmt.Println("write to udp server failed,err:", err)
-			}
-			s.Close(UDPServer)
-			log.Println("[ server ]# UdpAddr: ", udpAddr, "Data: ", string(buf[:length]))
 		}
-		return err
 	}
-
 }
 
 // Close 服务端关闭连接

@@ -5,16 +5,14 @@
 // -------------------------------------------
 package utils
 
-import "log"
+import (
+	"github.com/sirupsen/logrus"
+)
 
-func LogError(err error) {
-	log.Println(err.Error())
-	return
-}
 func LogDebug(p *ProtoAPP, err error) {
 	if err != nil {
-		LogError(err)
+		logrus.Errorf(err.Error())
 	} else {
-		log.Println(p.Result)
+		logrus.Infof(p.Result)
 	}
 }

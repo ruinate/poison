@@ -40,6 +40,7 @@ func (p *ProtoAPP) TCP(address string, config *ProtoAPP) (*ProtoAPP, error) {
 // UDP 客户端
 func (p *ProtoAPP) UDP(address string, config *ProtoAPP) (*ProtoAPP, error) {
 	client, _ := net.DialTimeout("udp", address, time.Millisecond*500)
+	defer p.Close(client)
 	_, _ = client.Write(config.HexPayload)
 	if len(p.Payload) > maxLength {
 		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", p.Mode, p.Host, p.Port, p.Payload)

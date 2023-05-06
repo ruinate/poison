@@ -2,7 +2,7 @@ package flow
 
 import (
 	"PoisonFlow/src/utils"
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"time"
 )
@@ -15,7 +15,7 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			config := utils.Check.CheckSend(&utils.Config)
-			fmt.Println("Send is running...")
+			logrus.Infof("Send  Mode %s is running...\n", utils.Config.Mode)
 			SEND.Execute(config)
 		},
 	}

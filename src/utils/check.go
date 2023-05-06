@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"net"
 	"os"
 )
@@ -18,7 +18,10 @@ func (c *CheckAPP) CheckHost(host string) {
 
 }
 func (c *CheckAPP) CheckDepth(depth int) {
-	return
+	switch depth {
+	default:
+		return
+	}
 }
 func (c *CheckAPP) CheckSendMode(mode string) {
 	switch mode {
@@ -115,21 +118,20 @@ func (c *CheckAPP) CheckServer(config *ProtoAPP) *ProtoAPP {
 }
 
 func (c *CheckAPP) CheckExit(err string) {
-	fmt.Fprintf(os.Stderr, "Fatal error: %s\n ", err)
-	os.Exit(1)
+	logrus.Fatalf("Fatal error: %s\n ", err)
 }
 func (c *CheckAPP) CheckDebug(debug string) {
-	fmt.Fprintf(os.Stderr, "debug:  %s\n ", debug)
-	os.Exit(1)
+	logrus.Printf("debug:  %s\n ", debug)
+	os.Exit(0)
 }
 func (c *CheckAPP) CheckError(err error) {
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Fatal error: %s\n ", err.Error())
-		os.Exit(1)
+		logrus.Errorf("Fatal error: %s\n ", err)
+		os.Exit(0)
 	}
 }
 func (c *CheckAPP) CheckTimeout(err error) string {
-	fmt.Fprintf(os.Stderr, "Fatal error: %s\n ", err)
+	logrus.Fatalln(os.Stderr, "Fatal error: %s\n ", err)
 	return ""
 }
 

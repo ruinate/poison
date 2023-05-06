@@ -2,7 +2,7 @@ package flow
 
 import (
 	"PoisonFlow/src/utils"
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"time"
 )
@@ -15,7 +15,7 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			payload := utils.Check.CheckAuto(&utils.Config)
-			fmt.Printf("Auto  Mode %s is running...\n", utils.Config.Mode)
+			logrus.Infof("Auto  Mode %s is running...\n", utils.Config.Mode)
 			AUTO.AutoExecute(&utils.Config, payload)
 		},
 	}

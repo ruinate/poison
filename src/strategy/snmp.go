@@ -3,8 +3,8 @@ package strategy
 import (
 	"PoisonFlow/src/utils"
 	"github.com/gosnmp/gosnmp"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"log"
 	"time"
 )
 
@@ -24,9 +24,9 @@ var (
 					// 执行方法
 					s, err := SNMP.SNMPExecute(client)
 					if err != nil {
-						log.Printf("snmp: %s   result: %s            \n", version, err.Error())
+						logrus.Infof("snmp: %s   result: %s            \n", version, err.Error())
 					} else {
-						log.Printf("snmp: %s   result: %s            \n", version, s.result)
+						logrus.Infof("snmp: %s   result: %s            \n", version, s.result)
 					}
 				}
 				time.Sleep(time.Millisecond * 300)

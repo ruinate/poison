@@ -15,7 +15,7 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			payload := utils.Check.CheckAuto(&utils.Config)
-			logrus.Infof("Auto  Mode %s is running...\n", utils.Config.Mode)
+			logrus.Infof("Starting Auto Mode %s ...\n", utils.Config.Mode)
 			AUTO.AutoExecute(&utils.Config, payload)
 		},
 	}

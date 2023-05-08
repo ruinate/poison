@@ -170,7 +170,8 @@ func (c *CheckAPP) CheckDDosMode(mode string) {
 func (c *CheckAPP) CheckDepthSum(config *ProtoAPP) bool {
 	config.Depth -= 1
 	if config.Depth == 0 {
-		Check.CheckDebug(config.Mode + " Task execution completed......")
+		logrus.Printf("Stopped   Mode : %s ...", config.Mode)
+		os.Exit(0)
 	}
 	return true
 

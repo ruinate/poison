@@ -17,6 +17,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			config := utils.Check.CheckSnmp(&utils.Config)
 			SNMPVersion := [...]string{"v1", "v2", "v3"}
+			logrus.Infof("Starting  SNMP Host : %s ...\n", utils.Config.Host)
 			for _, version := range SNMPVersion {
 				// 获取客户端
 				client := SNMP.SNMPClient(version, config)
@@ -31,6 +32,7 @@ var (
 				}
 				time.Sleep(time.Millisecond * 300)
 			}
+			logrus.Infof("Stoped  SNMP Host : %s ...\n", utils.Config.Host)
 		},
 	}
 )

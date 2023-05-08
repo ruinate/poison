@@ -25,7 +25,6 @@ var (
 
 // TCP 客户端
 func (p *ProtoAPP) TCP(address string, config *ProtoAPP) (*ProtoAPP, error) {
-
 	client, err := net.DialTimeout("tcp", address, time.Millisecond*300)
 	// 连接出错则打印错误消息并退出程序
 	if err != nil {

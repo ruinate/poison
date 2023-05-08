@@ -33,8 +33,7 @@ var buf = make([]byte, 1024)
 
 // Execute 监听执行
 func (s *ServerApp) Execute(config *utils.ProtoAPP) {
-	logrus.Infoln("server Host :", config.Host)
-	logrus.Infoln("server Port  mode is ", config.Mode)
+	logrus.Infof("Starting server Host : %s  Mode : %s", config.Host, config.Mode)
 	t := tebata.New(syscall.SIGINT, syscall.SIGTERM)
 	for port := 1; port < 65535; {
 		port++

@@ -15,7 +15,7 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			config := utils.Check.CheckSend(&utils.Config)
-			logrus.Infof("Send  Mode %s is running...\n", utils.Config.Mode)
+			logrus.Infof("Starting  Send Mode %s ...\n", utils.Config.Mode)
 			SEND.Execute(config)
 		},
 	}

@@ -50,8 +50,7 @@ func init() {
 	flow.DDOS.Flags().StringVarP(&utils.Config.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP、ICMP、WinNuke、Smurf:广播攻击\n"+
 		"'Land、TearDrop、MAXICMP ，默认：TCP'")
 	flow.DDOS.Flags().StringVarP(&utils.Config.Host, "host", "H", "0.0.0.0", "Host载体")
-	flow.DDOS.Flags().IntVarP(&utils.Config.Port, "port", "P", 22, "端口载体")
-
+	flow.DDOS.Flags().IntVarP(&utils.Config.Port, "port", "P", 10086, "端口载体")
 	// Server flags
 	strategy.Server.Flags().StringVarP(&utils.Config.Host, "host", "H", "0.0.0.0", "Host载体")
 	strategy.Server.Flags().StringVarP(&utils.Config.Mode, "mode", "m", "TCP", "模式载体")

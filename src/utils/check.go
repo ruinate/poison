@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"PoisonFlow/src/common"
 	"github.com/sirupsen/logrus"
 	"net"
 	"os"
@@ -67,7 +68,7 @@ func (c *CheckAPP) CheckAutoMode(mode string) [][2]interface{} {
 		return nil
 	}
 }
-func (c *CheckAPP) CheckHpingMode(config ProtoAPP) string {
+func (c *CheckAPP) CheckHpingMode(config common.ConfigType) string {
 	_mode := map[string]string{
 		"TCP":      "hping3 -c 1000 -d 120 -S -p 10086 --flood " + config.Host,
 		"UDP":      "hping3 " + config.Host + " -c 1000 --flood -2 -p 10086",
@@ -86,32 +87,32 @@ func (c *CheckAPP) CheckHpingMode(config ProtoAPP) string {
 	}
 
 }
-func (c *CheckAPP) CheckSend(config *ProtoAPP) *ProtoAPP {
+func (c *CheckAPP) CheckSend(config *common.ConfigType) *common.ConfigType {
 	c.CheckSendMode(config.Mode)
 	c.CheckHost(config.Host)
 	c.CheckPort(config.Port)
 	c.CheckDepth(config.Depth)
 	return config
 }
-func (c *CheckAPP) CheckDDos(config *ProtoAPP) *ProtoAPP {
+func (c *CheckAPP) CheckDDos(config *common.ConfigType) *common.ConfigType {
 	c.CheckDDosMode(config.Mode)
 	c.CheckHost(config.Host)
 	c.CheckPort(config.Port)
 	return config
 }
 
-func (c *CheckAPP) CheckAuto(config *ProtoAPP) [][2]interface{} {
+func (c *CheckAPP) CheckAuto(config *common.ConfigType) (*common.ConfigType, [][2]interface{}) {
 	c.CheckHost(config.Host)
 	c.CheckDepth(config.Depth)
-	return c.CheckAutoMode(config.Mode)
+	return config, c.CheckAutoMode(config.Mode)
 }
 
-func (c *CheckAPP) CheckSnmp(config *ProtoAPP) *ProtoAPP {
+func (c *CheckAPP) CheckSnmp(config *common.ConfigType) *common.ConfigType {
 	c.CheckHost(config.Host)
 	return config
 }
 
-func (c *CheckAPP) CheckServer(config *ProtoAPP) *ProtoAPP {
+func (c *CheckAPP) CheckServer(config *common.ConfigType) *common.ConfigType {
 	c.CheckServerMode(config.Mode)
 	c.CheckHost(config.Host)
 	return config
@@ -162,12 +163,16 @@ func (c *CheckAPP) CheckDDosMode(mode string) {
 		}
 	case "ICMP":
 		return
+	case "WinNuke":
+		return
+	case "Smurf":
+		return
 	default:
-		c.CheckExit("Please check format of Server mode: e.g. \"TCP\", \"UDP\",\"ICMP\" ")
+		c.CheckExit("Please check format of Server mode: e.g. \"TCP\", \"UDP\",\"ICMP\", \"WinNuke\", \"Smurf\", ")
 	}
 }
 
-func (c *CheckAPP) CheckDepthSum(config *ProtoAPP) bool {
+func (c *CheckAPP) CheckDepthSum(config *common.ConfigType) bool {
 	config.Depth -= 1
 	if config.Depth == 0 {
 		logrus.Printf("Stopped   Mode : %s ...", config.Mode)
@@ -175,6 +180,14 @@ func (c *CheckAPP) CheckDepthSum(config *ProtoAPP) bool {
 	}
 	return true
 
+}
+
+func LogDebug(p *ProtoAPP, err error) {
+	if err != nil {
+		logrus.Errorf(err.Error())
+	} else {
+		logrus.Infof(p.Result)
+	}
 }
 
 var Check CheckAPP

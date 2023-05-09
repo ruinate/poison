@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"PoisonFlow/src/common"
 	"encoding/hex"
 	"fmt"
 	"net"
@@ -9,11 +10,6 @@ import (
 )
 
 type ProtoAPP struct {
-	Depth      int
-	Mode       string
-	Host       string
-	Port       int
-	Payload    string
 	Result     string
 	HexPayload []byte
 }
@@ -24,27 +20,27 @@ var (
 )
 
 // TCP 客户端
-func (p *ProtoAPP) TCP(address string, config *ProtoAPP) (*ProtoAPP, error) {
+func (p *ProtoAPP) TCP(address string, config *common.ConfigType) (*ProtoAPP, error) {
 	client, err := net.DialTimeout("tcp", address, time.Millisecond*300)
 	// 连接出错则打印错误消息并退出程序
 	if err != nil {
 		return nil, err
 	}
-	_, err = client.Write(config.HexPayload)
+	_, err = client.Write(p.HexPayload)
 	defer p.Close(client)
-	p.ProcessResult(p.Receive(client))
+	p.ProcessResult(config, p.Receive(client))
 	return p, nil
 }
 
 // UDP 客户端
-func (p *ProtoAPP) UDP(address string, config *ProtoAPP) (*ProtoAPP, error) {
+func (p *ProtoAPP) UDP(address string, config *common.ConfigType) (*ProtoAPP, error) {
 	client, _ := net.DialTimeout("udp", address, time.Millisecond*500)
 	defer p.Close(client)
-	_, _ = client.Write(config.HexPayload)
-	if len(p.Payload) > maxLength {
-		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", p.Mode, p.Host, p.Port, p.Payload)
+	_, _ = client.Write(p.HexPayload)
+	if len(config.Payload) > maxLength {
+		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", config.Mode, config.Host, config.Port, config.Payload)
 	} else {
-		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", p.Mode, p.Host, p.Port, p.Payload)
+		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", config.Mode, config.Host, config.Port, config.Payload)
 	}
 
 	return p, nil
@@ -94,19 +90,19 @@ func (p *ProtoAPP) SwitchHex(payload string) []byte {
 
 }
 
-func (p *ProtoAPP) ProcessResult(err error) {
+func (p *ProtoAPP) ProcessResult(config *common.ConfigType, err error) {
 	if err != nil {
-		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", p.Mode, p.Host, p.Port, err.Error())
+		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", config.Mode, config.Host, config.Port, err.Error())
 	} else {
-		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", p.Mode, p.Host, p.Port, p.Result)
+		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", config.Mode, config.Host, config.Port, p.Result)
 	}
 }
 
 // Execute  运行方法
-func (p *ProtoAPP) Execute(config *ProtoAPP) (*ProtoAPP, error) {
+func (p *ProtoAPP) Execute(config *common.ConfigType) (*ProtoAPP, error) {
 	p.HexPayload = p.SwitchHex(config.Payload)
 	var address = fmt.Sprintf("%s:%d", config.Host, config.Port)
-	switch p.Mode {
+	switch config.Mode {
 	case "TCP":
 		{
 			return p.TCP(address, config)
@@ -133,5 +129,3 @@ func (p *ProtoAPP) Execute(config *ProtoAPP) (*ProtoAPP, error) {
 		return p, nil
 	}
 }
-
-var Config ProtoAPP

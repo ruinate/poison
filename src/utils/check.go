@@ -101,10 +101,10 @@ func (c *CheckAPP) CheckDDos(config *common.ConfigType) *common.ConfigType {
 	return config
 }
 
-func (c *CheckAPP) CheckAuto(config *common.ConfigType) (*common.ConfigType, [][2]interface{}) {
+func (c *CheckAPP) CheckAuto(config *common.ConfigType) *common.ConfigType {
 	c.CheckHost(config.Host)
 	c.CheckDepth(config.Depth)
-	return config, c.CheckAutoMode(config.Mode)
+	return config
 }
 
 func (c *CheckAPP) CheckSnmp(config *common.ConfigType) *common.ConfigType {

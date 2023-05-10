@@ -5,13 +5,13 @@ APP=poison
 ## build: build the application
 build: clean
 	@echo "Building..."
-	@go build -ldflags '-w -s' -o ${APP} src/main.go
+	@go build -ldflags '-w -s' -o ${APP} main.go
 	upx ${APP}
 
 .PHONY: run
 ## run: runs go run main.go
 run:
-	go run -race src/main.go
+	go run -race main.go
 
 .PHONY: clean
 ## clean: cleans the binary

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"PoisonFlow/src/common"
 	"encoding/hex"
 	"fmt"
 	"net"
@@ -9,7 +8,7 @@ import (
 	"time"
 )
 
-type ProtoAPP struct {
+type ProtoConfig struct {
 	Result     string
 	HexPayload []byte
 }
@@ -20,7 +19,7 @@ var (
 )
 
 // TCP 客户端
-func (p *ProtoAPP) TCP(address string, config *common.ConfigType) (*ProtoAPP, error) {
+func (p *ProtoConfig) TCP(address string, config *PoisonConfig) (*ProtoConfig, error) {
 	client, err := net.DialTimeout("tcp", address, time.Millisecond*300)
 	// 连接出错则打印错误消息并退出程序
 	if err != nil {
@@ -33,7 +32,7 @@ func (p *ProtoAPP) TCP(address string, config *common.ConfigType) (*ProtoAPP, er
 }
 
 // UDP 客户端
-func (p *ProtoAPP) UDP(address string, config *common.ConfigType) (*ProtoAPP, error) {
+func (p *ProtoConfig) UDP(address string, config *PoisonConfig) (*ProtoConfig, error) {
 	client, _ := net.DialTimeout("udp", address, time.Millisecond*500)
 	defer p.Close(client)
 	_, _ = client.Write(p.HexPayload)
@@ -47,7 +46,7 @@ func (p *ProtoAPP) UDP(address string, config *common.ConfigType) (*ProtoAPP, er
 }
 
 // Receive 读取服务端返回数据
-func (p *ProtoAPP) Receive(conn net.Conn) error {
+func (p *ProtoConfig) Receive(conn net.Conn) error {
 	for {
 		//返回数据，
 		var data = make([]byte, 1024)
@@ -68,14 +67,14 @@ func (p *ProtoAPP) Receive(conn net.Conn) error {
 }
 
 // Close 关闭客户端连接
-func (p *ProtoAPP) Close(conn net.Conn) {
+func (p *ProtoConfig) Close(conn net.Conn) {
 	err := conn.Close()
 	if err != nil {
 	}
 }
 
 //SwitchHex  转换为16进制
-func (p *ProtoAPP) SwitchHex(payload string) []byte {
+func (p *ProtoConfig) SwitchHex(payload string) []byte {
 	var HexData []byte
 	s := strings.Split(payload, "|")
 	for _, s := range s {
@@ -90,7 +89,7 @@ func (p *ProtoAPP) SwitchHex(payload string) []byte {
 
 }
 
-func (p *ProtoAPP) ProcessResult(config *common.ConfigType, err error) {
+func (p *ProtoConfig) ProcessResult(config *PoisonConfig, err error) {
 	if err != nil {
 		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", config.Mode, config.Host, config.Port, err.Error())
 	} else {
@@ -99,7 +98,7 @@ func (p *ProtoAPP) ProcessResult(config *common.ConfigType, err error) {
 }
 
 // Execute  运行方法
-func (p *ProtoAPP) Execute(config *common.ConfigType) (*ProtoAPP, error) {
+func (p *ProtoConfig) Execute(config *PoisonConfig) (*ProtoConfig, error) {
 	p.HexPayload = p.SwitchHex(config.Payload)
 	var address = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	switch config.Mode {

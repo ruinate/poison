@@ -6,34 +6,66 @@
 package strategy
 
 import (
-	"PoisonFlow/src/common"
 	"PoisonFlow/src/utils"
+	"github.com/sirupsen/logrus"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
 type Flow interface {
-	Execute(mode string, config *common.ConfigType) *FlowAPP
+	Execute(mode string, config *utils.PoisonConfig) *FlowAPP
 	AutoExecute(payload [][2]interface{})
 }
 type FlowAPP struct {
 }
 
-func (f *FlowAPP) Execute(mode string, config *common.ConfigType) *FlowAPP {
+var (
+	CountPacket = 0
+	c           = make(chan os.Signal, 1)
+)
+
+func (f *FlowAPP) Execute(mode string, config *utils.PoisonConfig) *FlowAPP {
+	// 捕获ctrl+c
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 	switch mode {
 	case "Send":
-		client := new(utils.ProtoAPP)
-		time.Sleep(time.Millisecond * 300)
+		client := new(utils.ProtoConfig)
 		if config.Depth != 0 {
-			p, err := client.Execute(config)
-			utils.LogDebug(p, err)
-			status := utils.Check.CheckDepthSum(config)
-			if status {
-				return f.Execute(mode, config)
+			for {
+				time.Sleep(time.Millisecond * 300)
+				select {
+				case _ = <-c:
+					logrus.Printf("stopped sending a total of %d packets", CountPacket)
+					os.Exit(0)
+				default:
+					CountPacket++
+					p, err := client.Execute(config)
+					utils.LogDebug(p, err)
+					status := utils.Check.CheckDepthSum(config)
+					if status == false {
+						logrus.Printf("stopped sending a total of %d packets", CountPacket)
+						return nil
+					}
+				}
+
 			}
+
 		} else {
-			p, err := client.Execute(config)
-			utils.LogDebug(p, err)
-			return f.Execute(mode, config)
+
+			for {
+				time.Sleep(time.Millisecond * 300)
+				select {
+				case _ = <-c:
+					logrus.Printf("stopped sending a total of %d packets", CountPacket)
+					os.Exit(0)
+				default:
+					CountPacket++
+					p, err := client.Execute(config)
+					utils.LogDebug(p, err)
+				}
+			}
 		}
 	case "Auto":
 		payload := utils.Check.CheckAutoMode(config.Mode)
@@ -56,12 +88,20 @@ func (f *FlowAPP) Execute(mode string, config *common.ConfigType) *FlowAPP {
 }
 
 func (f *FlowAPP) AutoExecute(payload [][2]interface{}) {
-	client := new(utils.ProtoAPP)
+	client := new(utils.ProtoConfig)
 	for _, P := range payload {
 		time.Sleep(time.Millisecond * 300)
-		common.Config.Port = P[0].(int)
-		common.Config.Payload = P[1].(string)
-		p, err := client.Execute(&common.Config)
-		utils.LogDebug(p, err)
+		select {
+		case _ = <-c:
+			logrus.Printf("stopped sending a total of %d packets", CountPacket)
+			os.Exit(0)
+		default:
+			utils.Config.Port = P[0].(int)
+			utils.Config.Payload = P[1].(string)
+			p, err := client.Execute(&utils.Config)
+			CountPacket += 2
+			utils.LogDebug(p, err)
+		}
+
 	}
 }

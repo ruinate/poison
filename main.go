@@ -1,14 +1,14 @@
 package main
 
 import (
-	"PoisonFlow/src/config"
+	"PoisonFlow/src/strategy"
 	"os"
 )
 
 // main 主执行程序
 func main() {
 
-	err := config.Poison.Execute()
+	err := strategy.Poison.Execute()
 	if err != nil {
 		os.Exit(0)
 	}

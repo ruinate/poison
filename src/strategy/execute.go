@@ -6,37 +6,36 @@
 package strategy
 
 import (
-	"PoisonFlow/src/common"
 	"PoisonFlow/src/utils"
 )
 
 var FlowClient Flow = &FlowAPP{}
 
 type ExecuteInterface interface {
-	Send(config *common.ConfigType)
-	Auto(config *common.ConfigType)
-	Ddos(config *common.ConfigType)
-	Server(config *common.ConfigType)
-	Snmp(config *common.ConfigType)
+	Send(config *utils.PoisonConfig)
+	Auto(config *utils.PoisonConfig)
+	Ddos(config *utils.PoisonConfig)
+	Server(config *utils.PoisonConfig)
+	Snmp(config *utils.PoisonConfig)
 }
 type Execute struct {
 }
 
-func (e *Execute) Send(config *common.ConfigType) {
+func (e *Execute) Send(config *utils.PoisonConfig) {
 	FlowClient.Execute("Send", config)
 }
-func (e *Execute) Auto(config *common.ConfigType) {
+func (e *Execute) Auto(config *utils.PoisonConfig) {
 	FlowClient.Execute("Auto", config)
 }
-func (e *Execute) Ddos(config *common.ConfigType) {
+func (e *Execute) Ddos(config *utils.PoisonConfig) {
 	client := new(utils.DdosAPP)
 	client.Execute(config)
 }
-func (e *Execute) Server(config *common.ConfigType) {
+func (e *Execute) Server(config *utils.PoisonConfig) {
 	client := new(utils.ServerApp)
 	client.Execute(config)
 }
-func (e *Execute) Snmp(config *common.ConfigType) {
+func (e *Execute) Snmp(config *utils.PoisonConfig) {
 	client := new(utils.SnmpAPP)
 	client.Execute(config)
 }

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"PoisonFlow/src/common"
 	"github.com/sirupsen/logrus"
 	"net"
 	"os"
@@ -68,7 +67,7 @@ func (c *CheckAPP) CheckAutoMode(mode string) [][2]interface{} {
 		return nil
 	}
 }
-func (c *CheckAPP) CheckHpingMode(config common.ConfigType) string {
+func (c *CheckAPP) CheckHpingMode(config PoisonConfig) string {
 	_mode := map[string]string{
 		"TCP":      "hping3 -c 1000 -d 120 -S -p 10086 --flood " + config.Host,
 		"UDP":      "hping3 " + config.Host + " -c 1000 --flood -2 -p 10086",
@@ -87,32 +86,32 @@ func (c *CheckAPP) CheckHpingMode(config common.ConfigType) string {
 	}
 
 }
-func (c *CheckAPP) CheckSend(config *common.ConfigType) *common.ConfigType {
+func (c *CheckAPP) CheckSend(config *PoisonConfig) *PoisonConfig {
 	c.CheckSendMode(config.Mode)
 	c.CheckHost(config.Host)
 	c.CheckPort(config.Port)
 	c.CheckDepth(config.Depth)
 	return config
 }
-func (c *CheckAPP) CheckDDos(config *common.ConfigType) *common.ConfigType {
+func (c *CheckAPP) CheckDDos(config *PoisonConfig) *PoisonConfig {
 	c.CheckDDosMode(config.Mode)
 	c.CheckHost(config.Host)
 	c.CheckPort(config.Port)
 	return config
 }
 
-func (c *CheckAPP) CheckAuto(config *common.ConfigType) *common.ConfigType {
+func (c *CheckAPP) CheckAuto(config *PoisonConfig) *PoisonConfig {
 	c.CheckHost(config.Host)
 	c.CheckDepth(config.Depth)
 	return config
 }
 
-func (c *CheckAPP) CheckSnmp(config *common.ConfigType) *common.ConfigType {
+func (c *CheckAPP) CheckSnmp(config *PoisonConfig) *PoisonConfig {
 	c.CheckHost(config.Host)
 	return config
 }
 
-func (c *CheckAPP) CheckServer(config *common.ConfigType) *common.ConfigType {
+func (c *CheckAPP) CheckServer(config *PoisonConfig) *PoisonConfig {
 	c.CheckServerMode(config.Mode)
 	c.CheckHost(config.Host)
 	return config
@@ -172,17 +171,16 @@ func (c *CheckAPP) CheckDDosMode(mode string) {
 	}
 }
 
-func (c *CheckAPP) CheckDepthSum(config *common.ConfigType) bool {
+func (c *CheckAPP) CheckDepthSum(config *PoisonConfig) bool {
 	config.Depth -= 1
 	if config.Depth == 0 {
-		logrus.Printf("Stopped   Mode : %s ...", config.Mode)
-		os.Exit(0)
+		return false
 	}
 	return true
 
 }
 
-func LogDebug(p *ProtoAPP, err error) {
+func LogDebug(p *ProtoConfig, err error) {
 	if err != nil {
 		logrus.Errorf(err.Error())
 	} else {

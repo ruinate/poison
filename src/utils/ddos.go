@@ -6,7 +6,6 @@
 package utils
 
 import (
-	"PoisonFlow/src/common"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"net"
@@ -25,7 +24,7 @@ var (
 type DdosAPP struct {
 }
 
-func (p *DdosAPP) Execute(config *common.ConfigType) {
+func (p *DdosAPP) Execute(config *PoisonConfig) {
 	var address = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	switch config.Mode {
 	case "TCP":

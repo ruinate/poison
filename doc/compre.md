@@ -9,4 +9,4 @@
     upx 是一个二进制压缩工具。它可用于压缩二进制文件和进一步减少文件大小。
     upx  build_file（文件名称）
 ## 3、build  windows 包
-    GOOS=windows GOARCH=amd64 go build -ldflags '-w -s' -o mian.exe main.go
+    GOOS=windows GOARCH=amd64 go build -ldflags '-w -s' -o main.exe main.go

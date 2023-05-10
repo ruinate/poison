@@ -6,7 +6,6 @@
 package utils
 
 import (
-	"PoisonFlow/src/common"
 	"github.com/gosnmp/gosnmp"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -17,7 +16,7 @@ type SnmpAPP struct {
 }
 
 // Execute SNMP执行程序
-func (s *SnmpAPP) Execute(config *common.ConfigType) {
+func (s *SnmpAPP) Execute(config *PoisonConfig) {
 	SNMPVersion := [...]string{"v1", "v2", "v3"}
 	for _, version := range SNMPVersion {
 		// 获取客户端
@@ -37,7 +36,7 @@ func (s *SnmpAPP) Execute(config *common.ConfigType) {
 }
 
 // SNMPClient SNMP客户端
-func (s *SnmpAPP) SNMPClient(version string, config *common.ConfigType) *gosnmp.GoSNMP {
+func (s *SnmpAPP) SNMPClient(version string, config *PoisonConfig) *gosnmp.GoSNMP {
 	switch version {
 	case "v1":
 		{

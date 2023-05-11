@@ -281,8 +281,6 @@ func (p *Payload) Execute(mode string) [][2]interface{} {
 		{
 			return p.OutputUDP()
 		}
-	default:
-		Check.CheckExit("Please check format of payload mode: e.g. TCP、UDP、BLACK、ICS.")
 	}
 	return nil
 }

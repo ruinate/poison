@@ -1,11 +1,13 @@
-// Package utils -----------------------------
+// Package service  -----------------------------
 // @file      : server.go
 // @author    : fzf
 // @time      : 2023/5/9 上午10:20
 // -------------------------------------------
-package utils
+package service
 
 import (
+	"PoisonFlow/src/conf"
+	"PoisonFlow/src/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/syossan27/tebata"
 	"net"
@@ -22,7 +24,7 @@ type ServerApp struct {
 var buf = make([]byte, 1024)
 
 // Execute 监听执行
-func (s *ServerApp) Execute(config *PoisonConfig) {
+func (s *ServerApp) Execute(config *conf.PoisonConfig) {
 	t := tebata.New(syscall.SIGINT, syscall.SIGTERM)
 	for port := 1; port < 65535; {
 		port++
@@ -37,23 +39,31 @@ func (s *ServerApp) Execute(config *PoisonConfig) {
 
 // ExecuteListen  监听主程序
 func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Tebata) error {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
 	if protocol == "TCP" {
 		conn, err := net.Listen("tcp", address+":"+port)
 		if err != nil {
 			return err
 		}
 		err = t.Reserve(conn.Close)
-		Check.CheckError(err)
+		utils.Check.CheckError(err)
 		for {
-			// 监听端口
-			TCPServer, err := conn.Accept()
-			Check.CheckError(err)
-			results, _ := TCPServer.Read(buf)
-			_, _ = TCPServer.Write(buf[:results])
-			s.Close(TCPServer)
-			logrus.Printf("%s -> %s", TCPServer.RemoteAddr(), TCPServer.LocalAddr())
+			select {
+			case <-time.After(0 * time.Millisecond):
+				// 监听端口
+				TCPServer, err := conn.Accept()
+				if err != nil {
+					break
+				}
+				results, _ := TCPServer.Read(buf)
+				_, _ = TCPServer.Write(buf[:results])
+				s.Close(TCPServer)
+				logrus.Printf("%s -> %s", TCPServer.RemoteAddr(), TCPServer.LocalAddr())
+			case s := <-Signal:
+				logrus.Errorf("received signal %s, exiting", s.String())
+				os.Exit(0)
+			}
+
 		}
 	} else {
 		port, _ := strconv.Atoi(port)
@@ -75,7 +85,7 @@ func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Teba
 				_, err = UDPServer.WriteToUDP(buf[:length], udpAddr)
 				s.Close(UDPServer)
 				logrus.Printf("%s -> %s", udpAddr, UDPServer.LocalAddr())
-			case s := <-sigs:
+			case s := <-Signal:
 				logrus.Errorf("received signal %s, exiting", s.String())
 				os.Exit(0)
 			}

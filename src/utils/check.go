@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"PoisonFlow/src/conf"
 	"github.com/sirupsen/logrus"
 	"net"
 	"os"
@@ -67,7 +68,7 @@ func (c *CheckAPP) CheckAutoMode(mode string) [][2]interface{} {
 		return nil
 	}
 }
-func (c *CheckAPP) CheckHpingMode(config PoisonConfig) string {
+func (c *CheckAPP) CheckHpingMode(config conf.PoisonConfig) string {
 	_mode := map[string]string{
 		"TCP":      "hping3 -c 1000 -d 120 -S -p 10086 --flood " + config.Host,
 		"UDP":      "hping3 " + config.Host + " -c 1000 --flood -2 -p 10086",
@@ -86,32 +87,36 @@ func (c *CheckAPP) CheckHpingMode(config PoisonConfig) string {
 	}
 
 }
-func (c *CheckAPP) CheckSend(config *PoisonConfig) *PoisonConfig {
+func (c *CheckAPP) CheckSend(config *conf.PoisonConfig) *conf.PoisonConfig {
 	c.CheckSendMode(config.Mode)
 	c.CheckHost(config.Host)
 	c.CheckPort(config.Port)
 	c.CheckDepth(config.Depth)
 	return config
 }
-func (c *CheckAPP) CheckDDos(config *PoisonConfig) *PoisonConfig {
+func (c *CheckAPP) CheckDDos(config *conf.PoisonConfig) *conf.PoisonConfig {
 	c.CheckDDosMode(config.Mode)
 	c.CheckHost(config.Host)
 	c.CheckPort(config.Port)
 	return config
 }
 
-func (c *CheckAPP) CheckAuto(config *PoisonConfig) *PoisonConfig {
+func (c *CheckAPP) CheckReplay(config *conf.PoisonConfig) *conf.PoisonConfig {
+	c.CheckDepth(config.Depth)
+	return config
+}
+func (c *CheckAPP) CheckAuto(config *conf.PoisonConfig) *conf.PoisonConfig {
 	c.CheckHost(config.Host)
 	c.CheckDepth(config.Depth)
 	return config
 }
 
-func (c *CheckAPP) CheckSnmp(config *PoisonConfig) *PoisonConfig {
+func (c *CheckAPP) CheckSnmp(config *conf.PoisonConfig) *conf.PoisonConfig {
 	c.CheckHost(config.Host)
 	return config
 }
 
-func (c *CheckAPP) CheckServer(config *PoisonConfig) *PoisonConfig {
+func (c *CheckAPP) CheckServer(config *conf.PoisonConfig) *conf.PoisonConfig {
 	c.CheckServerMode(config.Mode)
 	c.CheckHost(config.Host)
 	return config
@@ -171,21 +176,11 @@ func (c *CheckAPP) CheckDDosMode(mode string) {
 	}
 }
 
-func (c *CheckAPP) CheckDepthSum(config *PoisonConfig) bool {
-	config.Depth -= 1
-	if config.Depth == 0 {
+func (c *CheckAPP) CheckDepthSum(CounterDepth, depth int) bool {
+	if CounterDepth == depth {
 		return false
 	}
 	return true
-
-}
-
-func LogDebug(p *ProtoConfig, err error) {
-	if err != nil {
-		logrus.Errorf(err.Error())
-	} else {
-		logrus.Infof(p.Result)
-	}
 }
 
 var Check CheckAPP

@@ -1,11 +1,13 @@
-// Package utils -----------------------------
+// Package service -----------------------------
 // @file      : snmp.go
 // @author    : fzf
 // @time      : 2023/5/9 上午10:06
 // -------------------------------------------
-package utils
+package service
 
 import (
+	"PoisonFlow/src/conf"
+	"PoisonFlow/src/utils"
 	"github.com/gosnmp/gosnmp"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -16,27 +18,19 @@ type SnmpAPP struct {
 }
 
 // Execute SNMP执行程序
-func (s *SnmpAPP) Execute(config *PoisonConfig) {
+func (s *SnmpAPP) Execute(config *conf.PoisonConfig) {
 	SNMPVersion := [...]string{"v1", "v2", "v3"}
 	for _, version := range SNMPVersion {
 		// 获取客户端
 		client := s.SNMPClient(version, config)
-		if client != nil {
-			// 执行方法
-			snmp, err := s.SNMPGetOID(client)
-			if err != nil {
-				logrus.Infof("snmp: %s   result: %s            \n", version, err.Error())
-			} else {
-				logrus.Infof("snmp: %s   result: %s            \n", version, snmp.Result)
-			}
-		}
+		s.RUN(version, client)
 		time.Sleep(time.Millisecond * 300)
 	}
 	logrus.Infof("Stoped  SNMP Host : %s ...\n", config.Host)
 }
 
 // SNMPClient SNMP客户端
-func (s *SnmpAPP) SNMPClient(version string, config *PoisonConfig) *gosnmp.GoSNMP {
+func (s *SnmpAPP) SNMPClient(version string, config *conf.PoisonConfig) *gosnmp.GoSNMP {
 	switch version {
 	case "v1":
 		{
@@ -79,7 +73,7 @@ func (s *SnmpAPP) SNMPClient(version string, config *PoisonConfig) *gosnmp.GoSNM
 		}
 
 	default:
-		Check.CheckExit("snmp version is not found")
+		utils.Check.CheckExit("snmp version is not found")
 		return nil
 	}
 
@@ -103,6 +97,17 @@ func (s *SnmpAPP) SNMPGetOID(client *gosnmp.GoSNMP) (*SnmpAPP, error) {
 	}
 	s.Result = string(result.Variables[0].Value.([]byte))
 	return s, nil
+}
+func (s *SnmpAPP) RUN(version string, client *gosnmp.GoSNMP) {
+	if client != nil {
+		// 执行方法
+		snmp, err := s.SNMPGetOID(client)
+		if err != nil {
+			logrus.Infof("snmp: %s   result: %s            \n", version, err.Error())
+		} else {
+			logrus.Infof("snmp: %s   result: %s            \n", version, snmp.Result)
+		}
+	}
 }
 
 // Close SNMP关闭连接

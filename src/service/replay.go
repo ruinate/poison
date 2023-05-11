@@ -8,10 +8,11 @@ package service
 import (
 	"PoisonFlow/src/conf"
 	"PoisonFlow/src/utils"
+	"context"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
 	"github.com/sirupsen/logrus"
-	"log"
+	"golang.org/x/time/rate"
 	"net"
 	"os"
 	"os/signal"
@@ -30,26 +31,18 @@ type Replay struct {
 
 func (r *Replay) Execute(config *conf.PoisonConfig) {
 	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
-	go PacketSpeed()
+	go ReplaySpeed()
 	for {
-		select {
-		// 捕获ctrl + c
-		case _ = <-Signal:
+		r.SendPacket(config.FilePath, config.InterFace, config.Speed)
+		if config.Depth == CounterDepth {
 			logrus.Printf("stopped sending a total of %d packet", CounterPacket)
 			os.Exit(0)
-		case <-time.After(0 * time.Millisecond):
-			r.SendPacket(config.FilePath, config.InterFace)
-			if config.Depth == CounterDepth {
-				logrus.Printf("stopped sending a total of %d packet", CounterPacket)
-				os.Exit(0)
-			}
 		}
-
 	}
-
 }
-func (r *Replay) SendPacket(path, inter string) {
+func (r *Replay) SendPacket(path, inter string, speed int) {
 	files := r.FindAllFiles(path)
+	limiter := rate.NewLimiter(rate.Limit(speed), 1)
 	for _, file := range files {
 		// 打开 pcap 文件
 		pcapFile, err := pcap.OpenOffline(file)
@@ -63,18 +56,31 @@ func (r *Replay) SendPacket(path, inter string) {
 		// 循环读取 pcap 文件中的数据包
 		packetSource := gopacket.NewPacketSource(pcapFile, pcapFile.LinkType())
 		for packet := range packetSource.Packets() {
-			// 将数据包发送到本地网卡
-			if err := handle.WritePacketData(packet.Data()); err != nil {
-				log.Println("Error sending packet:", err)
+			select {
+			// 捕获ctrl + c
+			case _ = <-Signal:
+				logrus.Printf("stopped sending a total of %d packet", CounterPacket)
+				os.Exit(0)
+			default:
+				TemporaryPacket += 1
+				if err := limiter.Wait(context.Background()); err != nil {
+					// 将数据包发送到本地网卡
+					if err := handle.WritePacketData(packet.Data()); err != nil {
+						continue
+					}
+				}
+				// 将数据包发送到本地网卡
+				if err := handle.WritePacketData(packet.Data()); err != nil {
+					continue
+				}
+
 			}
-			TemporaryPacket += 1
 		}
 		pcapFile.Close()
 		handle.Close()
 	}
-	CounterDepth++
 	CounterPacket += TemporaryPacket
-	TemporaryPacket = 0
+	CounterDepth++
 }
 func (r *Replay) FindAllFiles(path string) []string {
 	file := make([]string, 0)

@@ -18,13 +18,28 @@ var (
 	Signal          = make(chan os.Signal, 1)
 )
 
-func PacketSpeed() {
+// DDosSpeed 专用
+func DDosSpeed() {
 	// 3秒中
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 	// 协程输出发送pps
 	for range ticker.C {
-		logrus.Infof("Sended packet : %d  pps: %d \n", CounterPacket, CounterPacket/3)
+		logrus.Infof("Sended packet : %d  pps: %d \n", TemporaryPacket, TemporaryPacket/3)
+		CounterPacket += TemporaryPacket
+		TemporaryPacket = 0
+	}
+}
+
+// ReplaySpeed 专用
+func ReplaySpeed() {
+	// 3秒中
+	ticker := time.NewTicker(3 * time.Second)
+	defer ticker.Stop()
+	// 协程输出发送pps
+	for range ticker.C {
+		logrus.Infof("Sended packet : %d  pps: %d \n", TemporaryPacket, TemporaryPacket/3)
+		TemporaryPacket = 0
 	}
 }
 

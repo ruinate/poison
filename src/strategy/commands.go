@@ -8,7 +8,6 @@ package strategy
 import (
 	"PoisonFlow/src/conf"
 	"PoisonFlow/src/utils"
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -94,16 +93,16 @@ var (
 )
 
 func init() {
-	fmt.Println(
-		`
-				 _
-	_ __   ___ (_)  ___  ___  _ __
-	| '_ \ / _ \| | / __|/ _ \| '_ \
-	| |_) | (_) | | \__ \ (_) | | | |
-	| .__/ \___/|_| |___/\___/|_| |_|
-	|_|
-	`,
-	)
+	//fmt.Println(
+	//	`
+	//			 _
+	//_ __   ___ (_)  ___  ___  _ __
+	//| '_ \ / _ \| | / __|/ _ \| '_ \
+	//| |_) | (_) | | \__ \ (_) | | | |
+	//| .__/ \___/|_| |___/\___/|_| |_|
+	//|_|
+	//`,
+	//)
 	Poison.AddCommand(CompletionCmd, Snmp, Server, Auto, Send, DDOS, Replay)
 	Poison.PersistentFlags().StringVarP(&n, "none", "n", "text", "send: 基础发送	auto: 自动发送	hping: 安全防护流量 \n"+
 		"snmp：snmp客户端	server: 服务端")
@@ -130,7 +129,7 @@ func init() {
 	Snmp.Flags().StringVarP(&conf.Config.Host, "host", "H", "0.0.0.0", "Host载体")
 	// Replay flags
 	Replay.Flags().StringVarP(&conf.Config.InterFace, "interface", "i", "lo", "接口载体")
-	Replay.Flags().IntVarP(&conf.Config.Speed, "speed", "s", 1000, "速度载体")
+	Replay.Flags().IntVarP(&conf.Config.Speed, "speed", "s", 100000, "速度载体")
 	Replay.Flags().StringVarP(&conf.Config.FilePath, "file", "f", "", "路径载体")
 	Replay.Flags().IntVarP(&conf.Config.Depth, "depth", "d", 1, "循环载体")
 }

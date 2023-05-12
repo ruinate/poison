@@ -21,7 +21,7 @@ var (
 )
 
 // TCP 客户端
-func (p *ProtoConfig) TCP(address string, config *conf.PoisonConfig) (*ProtoConfig, error) {
+func (p *ProtoConfig) TCP(address string, config *conf.FlowModel) (*ProtoConfig, error) {
 	client, err := net.DialTimeout("tcp", address, time.Millisecond*300)
 	// 连接出错则打印错误消息并退出程序
 	if err != nil {
@@ -34,7 +34,7 @@ func (p *ProtoConfig) TCP(address string, config *conf.PoisonConfig) (*ProtoConf
 }
 
 // UDP 客户端
-func (p *ProtoConfig) UDP(address string, config *conf.PoisonConfig) (*ProtoConfig, error) {
+func (p *ProtoConfig) UDP(address string, config *conf.FlowModel) (*ProtoConfig, error) {
 	client, _ := net.DialTimeout("udp", address, time.Millisecond*500)
 	defer p.Close(client)
 	_, _ = client.Write(p.HexPayload)
@@ -91,7 +91,7 @@ func (p *ProtoConfig) SwitchHex(payload string) []byte {
 
 }
 
-func (p *ProtoConfig) ProcessResult(config *conf.PoisonConfig, err error) {
+func (p *ProtoConfig) ProcessResult(config *conf.FlowModel, err error) {
 	if err != nil {
 		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", config.Mode, config.Host, config.Port, err.Error())
 	} else {
@@ -100,7 +100,7 @@ func (p *ProtoConfig) ProcessResult(config *conf.PoisonConfig, err error) {
 }
 
 // Execute  运行方法
-func (p *ProtoConfig) Execute(config *conf.PoisonConfig) (*ProtoConfig, error) {
+func (p *ProtoConfig) Execute(config *conf.FlowModel) (*ProtoConfig, error) {
 	p.HexPayload = p.SwitchHex(config.Payload)
 	var address = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	switch config.Mode {

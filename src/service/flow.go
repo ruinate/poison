@@ -16,13 +16,13 @@ import (
 )
 
 type Flow interface {
-	Execute(mode string, config *conf.PoisonConfig) *FlowAPP
-	AutoExecute(payload [][2]interface{})
+	Execute(mode string, config *conf.FlowModel) *FlowAPP
+	AutoExecute(config *conf.FlowModel, payload [][2]interface{}) int
 }
 type FlowAPP struct {
 }
 
-func (f *FlowAPP) Execute(mode string, config *conf.PoisonConfig) *FlowAPP {
+func (f *FlowAPP) Execute(mode string, config *conf.FlowModel) *FlowAPP {
 	// 捕获ctrl+c
 	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
 	switch mode {
@@ -39,24 +39,16 @@ func (f *FlowAPP) Execute(mode string, config *conf.PoisonConfig) *FlowAPP {
 				CounterPacket += 1
 				CounterDepth += 1
 				utils.LogDebug(p, err)
-				status := utils.Check.CheckDepthSum(CounterDepth, config.Depth)
-				if status != true {
-					logrus.Printf("stopped sending a total of %d packets", CounterPacket)
-					return nil
-				}
+				utils.Check.CheckDepthSum(CounterDepth, config.Depth, CounterPacket)
 			}
 
 		}
 	case "Auto":
 		payload := utils.Check.CheckAutoMode(config.Mode)
 		for {
-			f.AutoExecute(payload)
+			CounterPacket = f.AutoExecute(config, payload)
 			CounterDepth += 1
-			status := utils.Check.CheckDepthSum(CounterDepth, config.Depth)
-			if status != true {
-				logrus.Printf("stopped sending a total of %d packets", CounterPacket)
-				return nil
-			}
+			utils.Check.CheckDepthSum(CounterDepth, config.Depth, CounterPacket)
 		}
 	default:
 		utils.Check.CheckExit("")
@@ -64,7 +56,7 @@ func (f *FlowAPP) Execute(mode string, config *conf.PoisonConfig) *FlowAPP {
 	}
 }
 
-func (f *FlowAPP) AutoExecute(payload [][2]interface{}) {
+func (f *FlowAPP) AutoExecute(config *conf.FlowModel, payload [][2]interface{}) int {
 	client := new(utils.ProtoConfig)
 	for _, P := range payload {
 		time.Sleep(time.Millisecond * 300)
@@ -73,12 +65,12 @@ func (f *FlowAPP) AutoExecute(payload [][2]interface{}) {
 			logrus.Printf("stopped sending a total of %d packets", CounterPacket)
 			os.Exit(0)
 		case <-time.After(0 * time.Millisecond):
-			conf.Config.Port = P[0].(int)
-			conf.Config.Payload = P[1].(string)
-			p, err := client.Execute(&conf.Config)
-			CounterPacket += 2
+			CounterPacket += 1
+			config.Port = P[0].(int)
+			config.Payload = P[1].(string)
+			p, err := client.Execute(config)
 			utils.LogDebug(p, err)
 		}
-
 	}
+	return CounterPacket
 }

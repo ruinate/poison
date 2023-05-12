@@ -18,7 +18,7 @@ type SnmpAPP struct {
 }
 
 // Execute SNMP执行程序
-func (s *SnmpAPP) Execute(config *conf.PoisonConfig) {
+func (s *SnmpAPP) Execute(config *conf.FlowModel) {
 	SNMPVersion := [...]string{"v1", "v2", "v3"}
 	for _, version := range SNMPVersion {
 		// 获取客户端
@@ -30,7 +30,7 @@ func (s *SnmpAPP) Execute(config *conf.PoisonConfig) {
 }
 
 // SNMPClient SNMP客户端
-func (s *SnmpAPP) SNMPClient(version string, config *conf.PoisonConfig) *gosnmp.GoSNMP {
+func (s *SnmpAPP) SNMPClient(version string, config *conf.FlowModel) *gosnmp.GoSNMP {
 	switch version {
 	case "v1":
 		{

@@ -14,34 +14,34 @@ var FlowClient service.Flow = &service.FlowAPP{}
 var ReplayClient service.ReplayInterFace = &service.Replay{}
 
 type ExecuteInterface interface {
-	Send(config *conf.PoisonConfig)
-	Auto(config *conf.PoisonConfig)
-	Ddos(config *conf.PoisonConfig)
-	Server(config *conf.PoisonConfig)
-	Snmp(config *conf.PoisonConfig)
-	Replay(config *conf.PoisonConfig)
+	Send(config *conf.FlowModel)
+	Auto(config *conf.FlowModel)
+	Ddos(config *conf.FlowModel)
+	Server(config *conf.FlowModel)
+	Snmp(config *conf.FlowModel)
+	Replay(config *conf.ReplayModel)
 }
 type Execute struct {
 }
 
-func (e *Execute) Send(config *conf.PoisonConfig) {
+func (e *Execute) Send(config *conf.FlowModel) {
 	FlowClient.Execute("Send", config)
 }
-func (e *Execute) Auto(config *conf.PoisonConfig) {
+func (e *Execute) Auto(config *conf.FlowModel) {
 	FlowClient.Execute("Auto", config)
 }
-func (e *Execute) Ddos(config *conf.PoisonConfig) {
+func (e *Execute) Ddos(config *conf.FlowModel) {
 	client := new(service.DdosAPP)
 	client.Execute(config)
 }
-func (e *Execute) Server(config *conf.PoisonConfig) {
+func (e *Execute) Server(config *conf.FlowModel) {
 	client := new(service.ServerApp)
 	client.Execute(config)
 }
-func (e *Execute) Snmp(config *conf.PoisonConfig) {
+func (e *Execute) Snmp(config *conf.FlowModel) {
 	client := new(service.SnmpAPP)
 	client.Execute(config)
 }
-func (e *Execute) Replay(config *conf.PoisonConfig) {
+func (e *Execute) Replay(config *conf.ReplayModel) {
 	ReplayClient.Execute(config)
 }

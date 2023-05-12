@@ -9,6 +9,7 @@ import (
 	"PoisonFlow/src/conf"
 	"PoisonFlow/src/utils"
 	"context"
+	"fmt"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
 	"github.com/sirupsen/logrus"
@@ -23,13 +24,13 @@ import (
 
 type ReplayInterFace interface {
 	FindAllFiles(path string) []string
-	Execute(config *conf.PoisonConfig)
+	Execute(config *conf.ReplayModel)
 }
 
 type Replay struct {
 }
 
-func (r *Replay) Execute(config *conf.PoisonConfig) {
+func (r *Replay) Execute(config *conf.ReplayModel) {
 	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
 	go ReplaySpeed()
 	for {
@@ -59,6 +60,7 @@ func (r *Replay) SendPacket(path, inter string, speed int) {
 			select {
 			// 捕获ctrl + c
 			case _ = <-Signal:
+				fmt.Println(CounterPacket)
 				logrus.Printf("stopped sending a total of %d packet", CounterPacket)
 				os.Exit(0)
 			default:
@@ -66,14 +68,13 @@ func (r *Replay) SendPacket(path, inter string, speed int) {
 				if err := limiter.Wait(context.Background()); err != nil {
 					// 将数据包发送到本地网卡
 					if err := handle.WritePacketData(packet.Data()); err != nil {
-						continue
+						break
 					}
 				}
 				// 将数据包发送到本地网卡
 				if err := handle.WritePacketData(packet.Data()); err != nil {
-					continue
+					break
 				}
-
 			}
 		}
 		pcapFile.Close()

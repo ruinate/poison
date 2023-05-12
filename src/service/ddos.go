@@ -21,7 +21,7 @@ import (
 type DdosAPP struct {
 }
 
-func (p *DdosAPP) Execute(config *conf.PoisonConfig) {
+func (p *DdosAPP) Execute(config *conf.FlowModel) {
 	var address = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	switch config.Mode {
 	case "TCP":

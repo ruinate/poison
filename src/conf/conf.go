@@ -5,15 +5,17 @@
 // -------------------------------------------
 package conf
 
-type PoisonConfig struct {
+type FlowModel struct {
+	Depth   int
+	Mode    string
+	Host    string
+	Port    int
+	Payload string
+}
+
+type ReplayModel struct {
 	Depth     int
-	Mode      string
-	Host      string
-	Port      int
-	Payload   string
 	InterFace string
 	Speed     int
 	FilePath  string
 }
-
-var Config PoisonConfig

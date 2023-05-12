@@ -24,7 +24,7 @@ type ServerApp struct {
 var buf = make([]byte, 1024)
 
 // Execute 监听执行
-func (s *ServerApp) Execute(config *conf.PoisonConfig) {
+func (s *ServerApp) Execute(config *conf.FlowModel) {
 	t := tebata.New(syscall.SIGINT, syscall.SIGTERM)
 	for port := 1; port < 65535; {
 		port++

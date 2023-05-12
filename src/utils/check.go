@@ -68,7 +68,7 @@ func (c *CheckAPP) CheckAutoMode(mode string) [][2]interface{} {
 		return nil
 	}
 }
-func (c *CheckAPP) CheckHpingMode(config conf.PoisonConfig) string {
+func (c *CheckAPP) CheckHpingMode(config conf.FlowModel) string {
 	_mode := map[string]string{
 		"TCP":      "hping3 -c 1000 -d 120 -S -p 10086 --flood " + config.Host,
 		"UDP":      "hping3 " + config.Host + " -c 1000 --flood -2 -p 10086",
@@ -87,36 +87,36 @@ func (c *CheckAPP) CheckHpingMode(config conf.PoisonConfig) string {
 	}
 
 }
-func (c *CheckAPP) CheckSend(config *conf.PoisonConfig) *conf.PoisonConfig {
+func (c *CheckAPP) CheckSend(config *conf.FlowModel) *conf.FlowModel {
 	c.CheckSendMode(config.Mode)
 	c.CheckHost(config.Host)
 	c.CheckPort(config.Port)
 	c.CheckDepth(config.Depth)
 	return config
 }
-func (c *CheckAPP) CheckDDos(config *conf.PoisonConfig) *conf.PoisonConfig {
+func (c *CheckAPP) CheckDDos(config *conf.FlowModel) *conf.FlowModel {
 	c.CheckDDosMode(config.Mode)
 	c.CheckHost(config.Host)
 	c.CheckPort(config.Port)
 	return config
 }
 
-func (c *CheckAPP) CheckReplay(config *conf.PoisonConfig) *conf.PoisonConfig {
+func (c *CheckAPP) CheckReplay(config *conf.ReplayModel) *conf.ReplayModel {
 	c.CheckDepth(config.Depth)
 	return config
 }
-func (c *CheckAPP) CheckAuto(config *conf.PoisonConfig) *conf.PoisonConfig {
+func (c *CheckAPP) CheckAuto(config *conf.FlowModel) *conf.FlowModel {
 	c.CheckHost(config.Host)
 	c.CheckDepth(config.Depth)
 	return config
 }
 
-func (c *CheckAPP) CheckSnmp(config *conf.PoisonConfig) *conf.PoisonConfig {
+func (c *CheckAPP) CheckSnmp(config *conf.FlowModel) *conf.FlowModel {
 	c.CheckHost(config.Host)
 	return config
 }
 
-func (c *CheckAPP) CheckServer(config *conf.PoisonConfig) *conf.PoisonConfig {
+func (c *CheckAPP) CheckServer(config *conf.FlowModel) *conf.FlowModel {
 	c.CheckServerMode(config.Mode)
 	c.CheckHost(config.Host)
 	return config
@@ -176,9 +176,10 @@ func (c *CheckAPP) CheckDDosMode(mode string) {
 	}
 }
 
-func (c *CheckAPP) CheckDepthSum(CounterDepth, depth int) bool {
+func (c *CheckAPP) CheckDepthSum(CounterDepth, depth, CounterPacket int) bool {
 	if CounterDepth == depth {
-		return false
+		logrus.Printf("stopped sending a total of %d packets", CounterPacket)
+		os.Exit(0)
 	}
 	return true
 }

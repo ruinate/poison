@@ -15,14 +15,12 @@ import (
 var (
 	FlowConfig   conf.FlowModel
 	ReplayConfig conf.ReplayModel
-	// 命令行提示
-	validArgs = []string{"send", "auto", "ddos"}
 	// Poison 总开关
 	Poison = &cobra.Command{
 		Use:       "poison [command] [tab][tab]",
 		Short:     "Display one or many resources",
 		Long:      ``,
-		ValidArgs: validArgs,
+		ValidArgs: []string{"send", "auto", "ddos", "replay", "ddos", "snmp", "server"},
 	}
 	n          string
 	ExecuteAPP ExecuteInterface = &Execute{}
@@ -35,7 +33,9 @@ var (
 			Config := utils.Check.CheckSend(&FlowConfig)
 			logrus.Infof("Starting  Send Mode %s ...\n", Config.Mode)
 			ExecuteAPP.Send(Config)
+
 		},
+		ValidArgs: []string{"-m", "-H", "-P", "-p", "-d"},
 	}
 	// Auto 执行命令
 	Auto = &cobra.Command{
@@ -47,6 +47,7 @@ var (
 			logrus.Infof("Starting Auto Mode %s ...\n", Config.Mode)
 			ExecuteAPP.Auto(Config)
 		},
+		ValidArgs: []string{"-m", "-H", "-d"},
 	}
 	// Snmp 执行方法
 	Snmp = &cobra.Command{
@@ -58,6 +59,7 @@ var (
 			logrus.Infof("Starting  Host : %s ...\n", Config.Host)
 			ExecuteAPP.Snmp(Config)
 		},
+		ValidArgs: []string{"-H"},
 	}
 	// Server 执行方法
 	Server = &cobra.Command{
@@ -69,6 +71,7 @@ var (
 			logrus.Infof("Starting server Host : %s  Mode : %s...\n", Config.Host, Config.Mode)
 			ExecuteAPP.Server(Config)
 		},
+		ValidArgs: []string{"-m", "-H"},
 	}
 	// DDOS 执行方法
 	DDOS = &cobra.Command{
@@ -80,6 +83,7 @@ var (
 			logrus.Printf("Starting  Host:%s  Mode:%s ...\n", Config.Host, Config.Mode)
 			ExecuteAPP.Ddos(Config)
 		},
+		ValidArgs: []string{"-m", "-H", "-P"},
 	}
 	// Replay 执行方法
 	Replay = &cobra.Command{
@@ -91,6 +95,7 @@ var (
 			logrus.Printf("Starting Interface :%s   path :%s...\n", Config.InterFace, Config.FilePath)
 			ExecuteAPP.Replay(&ReplayConfig)
 		},
+		ValidArgs: []string{"-i", "-f", "-s"},
 	}
 )
 

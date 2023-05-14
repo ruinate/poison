@@ -12,10 +12,12 @@ import (
 )
 
 var (
-	CounterPacket   int
+	TotalPacket     int
+	TotalBytes      int64
+	TotalDepth      int
 	TemporaryPacket int
-	CounterDepth    int
 	Signal          = make(chan os.Signal, 1)
+	StartTime       = time.Now()
 )
 
 // DDosSpeed 专用
@@ -26,19 +28,7 @@ func DDosSpeed() {
 	// 协程输出发送pps
 	for range ticker.C {
 		logrus.Infof("Sended packet : %d  pps: %d \n", TemporaryPacket, TemporaryPacket/3)
-		CounterPacket += TemporaryPacket
-		TemporaryPacket = 0
-	}
-}
-
-// ReplaySpeed 专用
-func ReplaySpeed() {
-	// 3秒中
-	ticker := time.NewTicker(3 * time.Second)
-	defer ticker.Stop()
-	// 协程输出发送pps
-	for range ticker.C {
-		logrus.Infof("Sended packet : %d  pps: %d \n", TemporaryPacket, TemporaryPacket/3)
+		TotalPacket += TemporaryPacket
 		TemporaryPacket = 0
 	}
 }

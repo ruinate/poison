@@ -66,7 +66,7 @@ func (p *DdosAPP) SendPacket(mode, address string) {
 		select {
 		// 捕获ctrl + c
 		case _ = <-Signal:
-			logrus.Printf("stopped sending a total of %d packets", CounterPacket)
+			logrus.Printf("stopped sending a total of %d packets", TotalPacket)
 			os.Exit(0)
 		default:
 			conn, err := net.DialTimeout(mode, address, time.Millisecond*300)

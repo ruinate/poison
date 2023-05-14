@@ -9,7 +9,6 @@ import (
 	"PoisonFlow/src/conf"
 	"PoisonFlow/src/utils"
 	"context"
-	"fmt"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
 	"github.com/sirupsen/logrus"
@@ -32,18 +31,16 @@ type Replay struct {
 
 func (r *Replay) Execute(config *conf.ReplayModel) {
 	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
-	go ReplaySpeed()
+	go r.ReplaySpeed()
 	for {
-		r.SendPacket(config.FilePath, config.InterFace, config.Speed)
-		if config.Depth == CounterDepth {
-			logrus.Printf("stopped sending a total of %d packet", CounterPacket)
-			os.Exit(0)
+		if depth := r.SendPacket(config.FilePath, config.InterFace, config.Speed); config.Depth == depth {
+			r.PcapResults(TotalPacket, TotalBytes)
 		}
 	}
 }
-func (r *Replay) SendPacket(path, inter string, speed int) {
+func (r *Replay) SendPacket(path, inter string, speed int) int {
 	files := r.FindAllFiles(path)
-	limiter := rate.NewLimiter(rate.Limit(speed), 1)
+	limiter := rate.NewLimiter(rate.Limit(speed), 10000)
 	for _, file := range files {
 		// 打开 pcap 文件
 		pcapFile, err := pcap.OpenOffline(file)
@@ -56,15 +53,15 @@ func (r *Replay) SendPacket(path, inter string, speed int) {
 		utils.Check.CheckError(err)
 		// 循环读取 pcap 文件中的数据包
 		packetSource := gopacket.NewPacketSource(pcapFile, pcapFile.LinkType())
+
 		for packet := range packetSource.Packets() {
 			select {
 			// 捕获ctrl + c
 			case _ = <-Signal:
-				fmt.Println(CounterPacket)
-				logrus.Printf("stopped sending a total of %d packet", CounterPacket)
-				os.Exit(0)
+				r.PcapResults(TotalPacket, TotalBytes)
 			default:
 				TemporaryPacket += 1
+				TotalBytes += int64(len(packet.Data()))
 				if err := limiter.Wait(context.Background()); err != nil {
 					// 将数据包发送到本地网卡
 					if err := handle.WritePacketData(packet.Data()); err != nil {
@@ -80,8 +77,9 @@ func (r *Replay) SendPacket(path, inter string, speed int) {
 		pcapFile.Close()
 		handle.Close()
 	}
-	CounterPacket += TemporaryPacket
-	CounterDepth++
+	TotalPacket += TemporaryPacket
+	TotalDepth++
+	return TotalDepth
 }
 func (r *Replay) FindAllFiles(path string) []string {
 	file := make([]string, 0)
@@ -101,4 +99,25 @@ func (r *Replay) FindAllFiles(path string) []string {
 	})
 	utils.Check.CheckError(err)
 	return file
+}
+
+func (r *Replay) PcapResults(packet int, bytes int64) {
+	elapsed := time.Now().Sub(StartTime)
+	logrus.Printf("stopped sending a total of %d packet", packet)
+	logrus.Printf("Total bytes: %d\n", bytes)
+	logrus.Printf("Elapsed time: %v\n", elapsed)
+	logrus.Printf("Mbps: %.2f\n", float64(bytes)/elapsed.Seconds()*8/1000000)
+	os.Exit(0)
+}
+
+// ReplaySpeed 专用
+func (r *Replay) ReplaySpeed() {
+	// 3秒中
+	ticker := time.NewTicker(3 * time.Second)
+	defer ticker.Stop()
+	// 协程输出发送pps
+	for range ticker.C {
+		logrus.Infof("Sended packet : %d  pps: %d \n", TemporaryPacket, TemporaryPacket/3)
+		TemporaryPacket = 0
+	}
 }

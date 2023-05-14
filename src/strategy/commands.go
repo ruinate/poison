@@ -111,8 +111,8 @@ func init() {
 	//`,
 	//)
 	Poison.AddCommand(CompletionCmd, Snmp, Server, Auto, Send, DDOS, Replay)
-	Poison.PersistentFlags().StringVarP(&n, "none", "n", "text", "send: 基础发送	auto: 自动发送	hping: 安全防护流量 \n"+
-		"snmp：snmp客户端	server: 服务端")
+	//Poison.PersistentFlags().StringVarP(&n, "none", "n", "text", "send: 基础发送	auto: 自动发送	hping: 安全防护流量 \n"+
+	//	"snmp：snmp客户端	server: 服务端")
 	// Send flags
 	Send.Flags().StringVarP(&FlowConfig.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP")
 	Send.Flags().StringVarP(&FlowConfig.Host, "host", "H", "0.0.0.0", "Host载体")
@@ -151,6 +151,15 @@ func init() {
 	})
 	err = Server.RegisterFlagCompletionFunc(flagName, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"TCP", "UDP"}, cobra.ShellCompDirectiveDefault
+	})
+	inter := utils.TotalDevice()
+	replayInter := "interface"
+	replayFile := "file"
+	err = Replay.RegisterFlagCompletionFunc(replayInter, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return inter, cobra.ShellCompDirectiveDefault
+	})
+	err = Replay.RegisterFlagCompletionFunc(replayFile, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
 	})
 	if err != nil {
 		return

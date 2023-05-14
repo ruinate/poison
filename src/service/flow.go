@@ -32,23 +32,23 @@ func (f *FlowAPP) Execute(mode string, config *conf.FlowModel) *FlowAPP {
 			time.Sleep(time.Millisecond * 300)
 			select {
 			case _ = <-Signal:
-				logrus.Printf("stopped sending a total of %d packets", CounterPacket)
+				logrus.Printf("stopped sending a total of %d packets", TotalPacket)
 				os.Exit(0)
 			case <-time.After(0 * time.Millisecond):
 				p, err := client.Execute(config)
-				CounterPacket += 1
-				CounterDepth += 1
+				TotalPacket += 1
+				TotalDepth += 1
 				utils.LogDebug(p, err)
-				utils.Check.CheckDepthSum(CounterDepth, config.Depth, CounterPacket)
+				utils.Check.CheckDepthSum(TotalDepth, config.Depth, TotalPacket)
 			}
 
 		}
 	case "Auto":
 		payload := utils.Check.CheckAutoMode(config.Mode)
 		for {
-			CounterPacket = f.AutoExecute(config, payload)
-			CounterDepth += 1
-			utils.Check.CheckDepthSum(CounterDepth, config.Depth, CounterPacket)
+			TotalPacket = f.AutoExecute(config, payload)
+			TotalDepth += 1
+			utils.Check.CheckDepthSum(TotalDepth, config.Depth, TotalPacket)
 		}
 	default:
 		utils.Check.CheckExit("")
@@ -62,15 +62,15 @@ func (f *FlowAPP) AutoExecute(config *conf.FlowModel, payload [][2]interface{}) 
 		time.Sleep(time.Millisecond * 300)
 		select {
 		case _ = <-Signal:
-			logrus.Printf("stopped sending a total of %d packets", CounterPacket)
+			logrus.Printf("stopped sending a total of %d packets", TotalPacket)
 			os.Exit(0)
 		case <-time.After(0 * time.Millisecond):
-			CounterPacket += 1
+			TotalPacket += 1
 			config.Port = P[0].(int)
 			config.Payload = P[1].(string)
 			p, err := client.Execute(config)
 			utils.LogDebug(p, err)
 		}
 	}
-	return CounterPacket
+	return TotalPacket
 }

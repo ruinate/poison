@@ -15,7 +15,7 @@ var (
 	}
 	// ICSPayload 工业协议数据
 	ICSPayload = map[string][]string{
-		// modbus
+
 		"Modbus": {
 			"01000000000601010000000a",     // 1 Read Coils
 			"070000000006010200000004",     // 2 Read Discrete Inputs

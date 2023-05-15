@@ -100,6 +100,17 @@ var (
 )
 
 func init() {
+	var (
+		replayInter = "interface"
+		replayFile  = "file"
+		mode        = "mode"
+		host        = "host"
+		payload     = "payload"
+		port        = "port"
+		depth       = "depth"
+		speed       = "speed"
+	)
+
 	//fmt.Println(
 	//	`
 	//			 _
@@ -139,26 +150,67 @@ func init() {
 	Replay.Flags().StringVarP(&ReplayConfig.FilePath, "file", "f", "", "路径载体")
 	Replay.Flags().IntVarP(&ReplayConfig.Depth, "depth", "d", 1, "循环载体")
 	// Flag TAB
-	flagName := "mode"
-	err := Send.RegisterFlagCompletionFunc(flagName, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	// send
+	err := Send.RegisterFlagCompletionFunc(mode, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"TCP", "UDP"}, cobra.ShellCompDirectiveDefault
 	})
-	err = Auto.RegisterFlagCompletionFunc(flagName, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	err = Send.RegisterFlagCompletionFunc(host, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = Send.RegisterFlagCompletionFunc(port, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = Send.RegisterFlagCompletionFunc(payload, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = Send.RegisterFlagCompletionFunc(depth, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+
+	// auto
+	err = Auto.RegisterFlagCompletionFunc(mode, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"TCP", "UDP", "ICS", "BLACK"}, cobra.ShellCompDirectiveDefault
 	})
-	err = DDOS.RegisterFlagCompletionFunc(flagName, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	err = Auto.RegisterFlagCompletionFunc(host, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = Auto.RegisterFlagCompletionFunc(depth, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	// ddos
+	err = DDOS.RegisterFlagCompletionFunc(mode, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"TCP", "UDP", "ICMP", "WinNuke", "Smurf"}, cobra.ShellCompDirectiveDefault
 	})
-	err = Server.RegisterFlagCompletionFunc(flagName, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	err = DDOS.RegisterFlagCompletionFunc(host, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = DDOS.RegisterFlagCompletionFunc(port, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	// server
+	err = Server.RegisterFlagCompletionFunc(mode, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"TCP", "UDP"}, cobra.ShellCompDirectiveDefault
 	})
+	err = Server.RegisterFlagCompletionFunc(host, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+
+	// snmp
+	err = Snmp.RegisterFlagCompletionFunc(host, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	// replay
 	inter := utils.TotalDevice()
-	replayInter := "interface"
-	replayFile := "file"
 	err = Replay.RegisterFlagCompletionFunc(replayInter, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return inter, cobra.ShellCompDirectiveDefault
 	})
 	err = Replay.RegisterFlagCompletionFunc(replayFile, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = Replay.RegisterFlagCompletionFunc(speed, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = Replay.RegisterFlagCompletionFunc(depth, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{}, cobra.ShellCompDirectiveDefault
 	})
 	if err != nil {

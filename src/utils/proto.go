@@ -78,11 +78,12 @@ func (p *ProtoConfig) Close(conn net.Conn) {
 //SwitchHex  转换为16进制
 func (p *ProtoConfig) SwitchHex(payload string) []byte {
 	var HexData []byte
-	s := strings.Split(payload, "|")
-	for _, s := range s {
-		HexPayload, err := hex.DecodeString(s)
+	PayloadSplit := strings.Split(payload, "|")
+	for _, split := range PayloadSplit {
+		HexPayload, err := hex.DecodeString(split)
 		if err != nil {
-			HexData = append(HexData, []byte(payload)...)
+
+			HexData = append(HexData, []byte(split)...)
 		} else {
 			HexData = append(HexData, HexPayload...)
 		}

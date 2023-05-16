@@ -18,6 +18,7 @@ var (
 	TemporaryPacket int
 	Signal          = make(chan os.Signal, 1)
 	StartTime       = time.Now()
+	ScanPort        int
 )
 
 // DDosSpeed 专用

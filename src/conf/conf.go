@@ -11,6 +11,7 @@ type FlowModel struct {
 	Host    string
 	Port    int
 	Payload string
+	Scan    int
 }
 
 type ReplayModel struct {

@@ -22,7 +22,7 @@ var (
 		Long:      ``,
 		ValidArgs: []string{"send", "auto", "ddos", "replay", "ddos", "snmp", "server"},
 	}
-	n          string
+	//n          string
 	ExecuteAPP ExecuteInterface = &Execute{}
 	// Send 执行方法
 	Send = &cobra.Command{
@@ -109,6 +109,7 @@ func init() {
 		port        = "port"
 		depth       = "depth"
 		speed       = "speed"
+		scan        = "scan"
 	)
 
 	//fmt.Println(
@@ -139,6 +140,7 @@ func init() {
 		"'Land、TearDrop、MAXICMP ，默认：TCP'")
 	DDOS.Flags().StringVarP(&FlowConfig.Host, "host", "H", "0.0.0.0", "Host载体")
 	DDOS.Flags().IntVarP(&FlowConfig.Port, "port", "P", 10086, "端口载体")
+	DDOS.Flags().IntVarP(&FlowConfig.Scan, "scan", "s", 0, "是否开启端口扫描 0为不开启，1为开启")
 	// Server flags
 	Server.Flags().StringVarP(&FlowConfig.Host, "host", "H", "0.0.0.0", "Host载体")
 	Server.Flags().StringVarP(&FlowConfig.Mode, "mode", "m", "TCP", "模式载体")
@@ -185,6 +187,9 @@ func init() {
 		return []string{}, cobra.ShellCompDirectiveDefault
 	})
 	err = DDOS.RegisterFlagCompletionFunc(port, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = DDOS.RegisterFlagCompletionFunc(scan, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{}, cobra.ShellCompDirectiveDefault
 	})
 	// server

@@ -102,7 +102,8 @@ func (r *Replay) FindAllFiles(path string) []string {
 }
 
 func (r *Replay) PcapResults(packet int, bytes int64) {
-	elapsed := time.Now().Sub(StartTime)
+	elapsed := time.Now().Sub(
+		StartTime)
 	logrus.Printf("stopped sending a total of %d packet", packet)
 	logrus.Printf("Total bytes: %d\n", bytes)
 	logrus.Printf("Elapsed time: %v\n", elapsed)

@@ -8,6 +8,7 @@ package conf
 type FlowModel struct {
 	Depth   int
 	Mode    string
+	ICSMode string
 	Host    string
 	Port    int
 	Payload string

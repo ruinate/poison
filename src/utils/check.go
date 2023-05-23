@@ -45,24 +45,17 @@ func (c *CheckAPP) CheckPort(port int) {
 		c.CheckExit("Please check format of port : e.g. 1-65535 ")
 	}
 }
-func (c *CheckAPP) CheckAutoMode(mode string) [][2]interface{} {
+func (c *CheckAPP) CheckAutoMode(mode, icsmode string) [][2]interface{} {
 	switch mode {
 	case "TCP":
-		{
-			return Output.Execute("TCP")
-		}
+		return Output.Execute("TCP")
 	case "UDP":
-		{
-			return Output.Execute("UDP")
-		}
+		return Output.Execute("UDP")
 	case "ICS":
-		{
-			return Output.Execute("ICS")
-		}
+		return Output.OutputICS(icsmode)
+
 	case "BLACK":
-		{
-			return Output.Execute("BLACK")
-		}
+		return Output.Execute("BLACK")
 	default:
 		c.CheckExit("Please check format of send mode: e.g. \"TCP\",\"UDP\",BLACK,ICS")
 		return nil

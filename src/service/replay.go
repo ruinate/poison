@@ -17,6 +17,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"syscall"
 	"time"
 )
@@ -32,10 +33,24 @@ type Replay struct {
 func (r *Replay) Execute(config *conf.ReplayModel) {
 	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
 	go r.ReplaySpeed()
-	for {
-		if depth := r.SendPacket(config.FilePath, config.InterFace, config.Speed); config.Depth == depth {
-			r.PcapResults(TotalPacket, TotalBytes)
+	if config.Speed == 0 {
+		numCPU := runtime.NumCPU()
+		logrus.Printf("Limit Send mode---CPU：%d", numCPU)
+		for i := 0; i < numCPU; i++ {
+			go r.R(config)
 		}
+	}
+	for {
+		select {
+		// 捕获ctrl + c
+		case _ = <-Signal:
+			r.PcapResults(TotalPacket, TotalBytes)
+		default:
+			if depth := r.SendPacket(config.FilePath, config.InterFace, config.Speed); config.Depth == depth {
+				r.PcapResults(TotalPacket, TotalBytes)
+			}
+		}
+
 	}
 }
 func (r *Replay) SendPacket(path, inter string, speed int) int {
@@ -120,5 +135,20 @@ func (r *Replay) ReplaySpeed() {
 	for range ticker.C {
 		logrus.Infof("Sended packet : %d  pps: %d \n", TemporaryPacket, TemporaryPacket/3)
 		TemporaryPacket = 0
+	}
+}
+
+func (r *Replay) R(config *conf.ReplayModel) {
+	for {
+		select {
+		// 捕获ctrl + c
+		case _ = <-Signal:
+			r.PcapResults(TotalPacket, TotalBytes)
+		default:
+			if depth := r.SendPacket(config.FilePath, config.InterFace, config.Speed); config.Depth == depth {
+				r.PcapResults(TotalPacket, TotalBytes)
+			}
+		}
+
 	}
 }

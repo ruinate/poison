@@ -44,7 +44,7 @@ func (f *FlowAPP) Execute(mode string, config *conf.FlowModel) *FlowAPP {
 
 		}
 	case "Auto":
-		payload := utils.Check.CheckAutoMode(config.Mode)
+		payload := utils.Check.CheckAutoMode(config.Mode, config.ICSMode)
 		for {
 			TotalPacket = f.AutoExecute(config, payload)
 			TotalDepth += 1

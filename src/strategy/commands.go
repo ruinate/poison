@@ -22,7 +22,7 @@ var (
 		Long:      ``,
 		ValidArgs: []string{"send", "auto", "ddos", "replay", "ddos", "snmp", "server"},
 	}
-	//n          string
+	// ExecuteAPP
 	ExecuteAPP ExecuteInterface = &Execute{}
 	// Send 执行方法
 	Send = &cobra.Command{
@@ -110,6 +110,7 @@ func init() {
 		depth       = "depth"
 		speed       = "speed"
 		scan        = "scan"
+		icsmode     = "icsmode"
 	)
 
 	//fmt.Println(
@@ -135,6 +136,7 @@ func init() {
 	Auto.Flags().StringVarP(&FlowConfig.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP、ICS、BLACK")
 	Auto.Flags().StringVarP(&FlowConfig.Host, "host", "H", "0.0.0.0", "Host载体")
 	Auto.Flags().IntVarP(&FlowConfig.Depth, "depth", "d", 1, "循环载体")
+	Auto.Flags().StringVarP(&FlowConfig.ICSMode, "icsmode", "i", "all", "ICS模式选择")
 	// DDos flags
 	DDOS.Flags().StringVarP(&FlowConfig.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP、ICMP、WinNuke、Smurf:广播攻击\n"+
 		"'Land、TearDrop、MAXICMP ，默认：TCP'")
@@ -178,6 +180,13 @@ func init() {
 	})
 	err = Auto.RegisterFlagCompletionFunc(depth, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = Auto.RegisterFlagCompletionFunc(icsmode, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"Modbus", "BACnet", "DNP3", "FINS", "OpcUA", "OpcDA",
+			"OpcAE", "S7COMM", "ADS/AMS", "Umas", "ENIP",
+			"Hart/IP", "S7COMM_PLUS", "IEC104", "CIP", "GE_SRTP", "EGD",
+			"H1", "FF", "MELSOFT", "Ovation",
+			"CoAP", "MQTT", "DLT645", "MELSOFT(1E)"}, cobra.ShellCompDirectiveDefault
 	})
 	// ddos
 	err = DDOS.RegisterFlagCompletionFunc(mode, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

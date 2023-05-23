@@ -32,6 +32,7 @@ func (e *Execute) Auto(config *conf.FlowModel) {
 }
 func (e *Execute) Ddos(config *conf.FlowModel) {
 	client := new(service.DdosAPP)
+	go service.DDosSpeed()
 	client.Execute(config)
 }
 func (e *Execute) Server(config *conf.FlowModel) {

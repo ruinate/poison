@@ -3,7 +3,6 @@ package utils
 import (
 	"PoisonFlow/src/conf"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"net"
@@ -18,7 +17,6 @@ type ProtoConfig struct {
 
 var (
 	maxLength = 20 // 设置result最大长度为20个字符
-
 )
 
 // TCP 客户端
@@ -45,6 +43,14 @@ func (p *ProtoConfig) UDP(address string, config *conf.FlowModel) (*ProtoConfig,
 		p.Result = fmt.Sprintf("%s connected to the %s  port: %d payload: %#v", config.Mode, config.Host, config.Port, config.Payload)
 	}
 
+	return p, nil
+}
+func (p *ProtoConfig) ICMP(config *conf.FlowModel) (*ProtoConfig, error) {
+	err := PING(config.Host)
+	if err != nil {
+		return nil, err
+	}
+	p.Result = ""
 	return p, nil
 }
 
@@ -106,33 +112,26 @@ func (p *ProtoConfig) Execute(config *conf.FlowModel) (*ProtoConfig, error) {
 	p.HexPayload = p.SwitchHex(config.Payload)
 	var (
 		address = fmt.Sprintf("%s:%d", config.Host, config.Port)
-		ErrMode = errors.New("Please check format of Server mode: e.g. \"TCP\", \"UDP\"")
 	)
 	switch config.Mode {
 	case "TCP":
-		{
-			return p.TCP(address, config)
-		}
-	case "UDP":
-		{
-			return p.UDP(address, config)
-		}
-	case "ICS":
-		{
-			// 协程UDP
-			go func() {
-				p, err := p.UDP(address, config)
-				LogDebug(p, err)
-			}()
+		return p.TCP(address, config)
 
-			return p.TCP(address, config)
-		}
+	case "UDP":
+		return p.UDP(address, config)
+	case "ICS":
+		// 协程UDP
+		go func() {
+			p, err := p.UDP(address, config)
+			LogDebug(p, err)
+		}()
+		return p.TCP(address, config)
 	case "BLACK":
-		{
-			return p.TCP(address, config)
-		}
+		return p.TCP(address, config)
+	case "ICMP":
+		return p.ICMP(config)
 	default:
-		return nil, ErrMode
+		return nil, ErrorSendMode
 	}
 }
 

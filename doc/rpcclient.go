@@ -21,7 +21,7 @@ var (
 		Port:    10086,
 		Payload: "aqwert",
 	}
-	result *string = new(string)
+	result *error = new(error)
 )
 
 func main() {
@@ -33,7 +33,7 @@ func main() {
 	// 这里指定序列化协议为JSON
 	client := rpc.NewClientWithCodec(jsonrpc.NewClientCodec(conn))
 	err = client.Call("Flow.RPC", &config, result)
-	if err != nil {
+	if err == nil {
 		panic("调用失败")
 	}
 	logger.Printf("RPC函数 调用成功")

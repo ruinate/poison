@@ -30,9 +30,13 @@ var (
 		Short: "发送数据包：TCP、UDP",
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
-			Config := utils.Check.CheckSend(&FlowConfig)
-			logger.Infof("Starting  Send Mode %s ...\n", Config.Mode)
-			ExecuteAPP.Send(Config)
+			err := utils.Check.CheckSend(&FlowConfig)
+			if err != nil {
+				utils.Check.CheckError(err)
+				return
+			}
+			logger.Infof("Starting  Send Mode %s ...\n", FlowConfig.Mode)
+			ExecuteAPP.Send(&FlowConfig)
 
 		},
 		ValidArgs: []string{"-m", "-H", "-P", "-p", "-d"},
@@ -43,9 +47,13 @@ var (
 		Short: "自动发送：TCP、UDP、BLACK、ICS",
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
-			Config := utils.Check.CheckAuto(&FlowConfig)
-			logger.Infof("Starting Auto Mode %s ...\n", Config.Mode)
-			ExecuteAPP.Auto(Config)
+			err := utils.Check.CheckAuto(&FlowConfig)
+			if err != nil {
+				utils.Check.CheckError(err)
+				return
+			}
+			logger.Infof("Starting Auto Mode %s ...\n", FlowConfig.Mode)
+			ExecuteAPP.Auto(&FlowConfig)
 		},
 		ValidArgs: []string{"-m", "-H", "-d"},
 	}
@@ -55,9 +63,13 @@ var (
 		Short: "SNMP 客户端连接测试",
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
-			Config := utils.Check.CheckSnmp(&FlowConfig)
-			logger.Infof("Starting  Host : %s ...\n", Config.Host)
-			ExecuteAPP.Snmp(Config)
+			err := utils.Check.CheckSnmp(&FlowConfig)
+			if err != nil {
+				utils.Check.CheckError(err)
+				return
+			}
+			logger.Infof("Starting  Host : %s ...\n", FlowConfig.Host)
+			ExecuteAPP.Snmp(&FlowConfig)
 		},
 		ValidArgs: []string{"-H"},
 	}
@@ -67,9 +79,13 @@ var (
 		Short: "服务端：监听端口默认全部",
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
-			Config := utils.Check.CheckServer(&FlowConfig)
-			logger.Infof("Starting server Host : %s  Mode : %s...\n", Config.Host, Config.Mode)
-			ExecuteAPP.Server(Config)
+			err := utils.Check.CheckServer(&FlowConfig)
+			if err != nil {
+				utils.Check.CheckError(err)
+				return
+			}
+			logger.Infof("Starting server Host : %s  Mode : %s...\n", FlowConfig.Host, FlowConfig.Mode)
+			ExecuteAPP.Server(&FlowConfig)
 		},
 		ValidArgs: []string{"-m", "-H"},
 	}
@@ -79,9 +95,13 @@ var (
 		Short: "安全防护",
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
-			Config := utils.Check.CheckDDos(&FlowConfig)
-			logger.Printf("Starting  Host:%s  Mode:%s ...\n", Config.Host, Config.Mode)
-			ExecuteAPP.Ddos(Config)
+			err := utils.Check.CheckDDos(&FlowConfig)
+			if err != nil {
+				utils.Check.CheckError(err)
+				return
+			}
+			logger.Printf("Starting  Host:%s  Mode:%s ...\n", FlowConfig.Host, FlowConfig.Mode)
+			ExecuteAPP.Ddos(&FlowConfig)
 		},
 		ValidArgs: []string{"-m", "-H", "-P"},
 	}
@@ -91,8 +111,12 @@ var (
 		Short: "流量重放",
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
-			Config := utils.Check.CheckReplay(&ReplayConfig)
-			logger.Printf("Starting Interface :%s   path :%s...\n", Config.InterFace, Config.FilePath)
+			err := utils.Check.CheckReplay(&ReplayConfig)
+			if err != nil {
+				utils.Check.CheckError(err)
+				return
+			}
+			logger.Printf("Starting Interface :%s   path :%s...\n", ReplayConfig.InterFace, ReplayConfig.FilePath)
 			ExecuteAPP.Replay(&ReplayConfig)
 		},
 		ValidArgs: []string{"-i", "-f", "-s"},
@@ -104,7 +128,25 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.Println("Starting RpcServer...")
-			ExecuteAPP.RPC()
+			err := ExecuteAPP.RPC()
+			if err != nil {
+				utils.Check.CheckError(err)
+				return
+			}
+		},
+	}
+	// Ping 执行方法
+	Ping = &cobra.Command{
+		Use:   "ping ",
+		Short: "ping ICMP方法",
+		Long:  ``,
+		Run: func(cmd *cobra.Command, args []string) {
+			err := utils.Check.CheckSend(&FlowConfig)
+			if err != nil {
+				utils.Check.CheckError(err)
+				return
+			}
+			ExecuteAPP.PING(&FlowConfig)
 		},
 	}
 )
@@ -133,11 +175,11 @@ func init() {
 	//|_|
 	//`,
 	//)
-	Poison.AddCommand(CompletionCmd, Snmp, Server, Auto, Send, DDOS, Replay, RPC)
+	Poison.AddCommand(CompletionCmd, Snmp, Server, Auto, Send, DDOS, Replay, RPC, Ping)
 	//Poison.PersistentFlags().StringVarP(&n, "none", "n", "text", "send: 基础发送	auto: 自动发送	hping: 安全防护流量 \n"+
 	//	"snmp：snmp客户端	server: 服务端")
 	// Send flags
-	Send.Flags().StringVarP(&FlowConfig.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP")
+	Send.Flags().StringVarP(&FlowConfig.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP、ICMP")
 	Send.Flags().StringVarP(&FlowConfig.Host, "host", "H", "0.0.0.0", "Host载体")
 	Send.Flags().StringVarP(&FlowConfig.Payload, "payload", "p", utils.RandStr(20), "数据载体")
 	Send.Flags().IntVarP(&FlowConfig.Port, "port", "P", 22, "端口载体")
@@ -163,6 +205,10 @@ func init() {
 	Replay.Flags().IntVarP(&ReplayConfig.Speed, "speed", "s", 100000, "速度载体")
 	Replay.Flags().StringVarP(&ReplayConfig.FilePath, "file", "f", "", "路径载体")
 	Replay.Flags().IntVarP(&ReplayConfig.Depth, "depth", "d", 1, "循环载体")
+	//PING
+	Ping.Flags().StringVarP(&FlowConfig.Mode, "mode", "m", "ICMP", "模式载体:ICMP")
+	Ping.Flags().StringVarP(&FlowConfig.Host, "host", "H", "127.0.0.1", "Host载体")
+	Ping.Flags().IntVarP(&FlowConfig.Depth, "depth", "d", 1, "循环载体")
 	// Flag TAB
 	// send
 	err := Send.RegisterFlagCompletionFunc(mode, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -235,6 +281,13 @@ func init() {
 		return []string{}, cobra.ShellCompDirectiveDefault
 	})
 	err = Replay.RegisterFlagCompletionFunc(depth, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	// PING
+	err = Ping.RegisterFlagCompletionFunc(mode, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"ICMP"}, cobra.ShellCompDirectiveDefault
+	})
+	err = Ping.RegisterFlagCompletionFunc(host, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{}, cobra.ShellCompDirectiveDefault
 	})
 	if err != nil {

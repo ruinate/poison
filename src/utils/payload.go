@@ -413,7 +413,7 @@ func (p *Payload) PORTRandom(payload [][2]interface{}) [][2]interface{} {
 }
 
 // Execute 小型payload工厂
-func (p *Payload) Execute(mode string) [][2]interface{} {
+func (p *Payload) Execute(mode, icsmode string) [][2]interface{} {
 	switch mode {
 	case "BLACK":
 		return p.OutputBLACK()
@@ -421,8 +421,11 @@ func (p *Payload) Execute(mode string) [][2]interface{} {
 		return p.OutputTCP()
 	case "UDP":
 		return p.OutputUDP()
+	case "ICS":
+		return p.OutputICS(icsmode)
+	default:
+		return nil
 	}
-	return nil
 }
 
 var Output Payload

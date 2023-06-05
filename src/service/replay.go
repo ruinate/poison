@@ -16,14 +16,12 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"runtime"
 	"syscall"
 	"time"
 )
 
 type ReplayInterFace interface {
-	FindAllFiles(path string) []string
 	Execute(config *conf.ReplayModel)
 }
 
@@ -46,26 +44,33 @@ func (r *Replay) Execute(config *conf.ReplayModel) {
 		case _ = <-Signal:
 			r.PcapResults(TotalPacket, TotalBytes)
 		default:
-			if depth := r.SendPacket(config.FilePath, config.InterFace, config.Speed); config.Depth == depth {
-				r.PcapResults(TotalPacket, TotalBytes)
+			err := r.SendPacket(config.FilePath, config.InterFace, config.Speed, config.Depth)
+			if err != nil {
+				utils.Check.CheckError(err)
 			}
 		}
 
 	}
 }
-func (r *Replay) SendPacket(path, inter string, speed int) int {
-	files := r.FindAllFiles(path)
+func (r *Replay) SendPacket(path, inter string, speed, depth int) error {
+	files := utils.FindAllFiles(path)
 	limiter := rate.NewLimiter(rate.Limit(speed), 10000)
 	for _, file := range files {
 		// 打开 pcap 文件
 		pcapFile, err := pcap.OpenOffline(file)
-		utils.Check.CheckError(err)
+		if err != nil {
+			return err
+		}
 		// 获取网络接口
 		InterFace, err := net.InterfaceByName(inter)
-		utils.Check.CheckError(err)
+		if err != nil {
+			return err
+		}
 		// 打开网络接口
 		handle, err := pcap.OpenLive(InterFace.Name, 65536, true, time.Second)
-		utils.Check.CheckError(err)
+		if err != nil {
+			return err
+		}
 		// 循环读取 pcap 文件中的数据包
 		packetSource := gopacket.NewPacketSource(pcapFile, pcapFile.LinkType())
 
@@ -94,26 +99,10 @@ func (r *Replay) SendPacket(path, inter string, speed int) int {
 	}
 	TotalPacket += TemporaryPacket
 	TotalDepth++
-	return TotalDepth
-}
-func (r *Replay) FindAllFiles(path string) []string {
-	file := make([]string, 0)
-	if filepath.Ext(path) == ".pcap" || filepath.Ext(path) == ".pcapng" {
-		file = append(file, path)
-		return file
+	if depth == TotalDepth {
+		r.PcapResults(TotalPacket, TotalBytes)
 	}
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		// 如果是 pcap文件  或者pcapng 则添加
-		if !info.IsDir() && filepath.Ext(path) == ".pcap" || !info.IsDir() && filepath.Ext(path) == ".pcapng" {
-			file = append(file, path)
-		}
-		return nil
-	})
-	utils.Check.CheckError(err)
-	return file
+	return nil
 }
 
 func (r *Replay) PcapResults(packet int, bytes int64) {
@@ -145,8 +134,9 @@ func (r *Replay) R(config *conf.ReplayModel) {
 		case _ = <-Signal:
 			r.PcapResults(TotalPacket, TotalBytes)
 		default:
-			if depth := r.SendPacket(config.FilePath, config.InterFace, config.Speed); config.Depth == depth {
-				r.PcapResults(TotalPacket, TotalBytes)
+			err := r.SendPacket(config.FilePath, config.InterFace, config.Speed, config.Depth)
+			if err != nil {
+				utils.Check.CheckError(err)
 			}
 		}
 

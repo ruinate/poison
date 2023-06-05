@@ -12,9 +12,11 @@
     / server
     Because there are too many open sockets, you need to set
     uname -SHn  70000
-    
+    / ping
+    sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
+
     insatll-
-    bash build.sh
+    make 
     
     命令行 tab联想
     mv poison /usr/local/bin/
@@ -38,6 +40,7 @@
     server      服务端：监听端口默认全部
     snmp        SNMP 客户端连接测试
     rpc         RPC发送流量服务
+    ping        发送ICMP
     
     Flags:
     -h, --help          help for PoisonFlow

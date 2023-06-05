@@ -8,7 +8,6 @@ package strategy
 import (
 	"PoisonFlow/src/conf"
 	"PoisonFlow/src/service"
-	"PoisonFlow/src/utils"
 )
 
 var FlowClient service.Flow = &service.FlowAPP{}
@@ -21,7 +20,7 @@ type ExecuteInterface interface {
 	Server(config *conf.FlowModel)
 	Snmp(config *conf.FlowModel)
 	Replay(config *conf.ReplayModel)
-	RPC()
+	RPC() error
 }
 type Execute struct {
 }
@@ -49,9 +48,7 @@ func (e *Execute) Replay(config *conf.ReplayModel) {
 	ReplayClient.Execute(config)
 }
 
-func (e *Execute) RPC() {
+func (e *Execute) RPC() error {
 	err := FlowClient.RPCExecute()
-	if err != nil {
-		utils.Check.CheckError(err)
-	}
+	return err
 }

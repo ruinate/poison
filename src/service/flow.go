@@ -24,7 +24,7 @@ var (
 
 type Flow interface {
 	RPCExecute() error
-	RPC(config *conf.FlowModel, result *string) error
+	RPC(config *conf.FlowModel, result *error) error
 	Execute(mode string, config *conf.FlowModel) *FlowAPP
 	AutoExecute(config *conf.FlowModel, payload [][2]interface{}) int
 }
@@ -44,10 +44,14 @@ func (f *FlowAPP) RPCExecute() error {
 	}
 }
 
-func (f *FlowAPP) RPC(config *conf.FlowModel, result *string) error {
+func (f *FlowAPP) RPC(config *conf.FlowModel, result *error) error {
+	err := utils.Check.CheckSend(config)
+	if err != nil {
+		return err
+	}
 	p, err := client.Execute(config)
 	if err != nil {
-		*result = err.Error()
+		return nil
 	}
 	utils.LogDebug(p, err)
 	return nil
@@ -63,21 +67,24 @@ func (f *FlowAPP) Execute(mode string, config *conf.FlowModel) *FlowAPP {
 			select {
 			case _ = <-Signal:
 				logger.Printf("stopped sending a total of %d packets", TotalPacket)
-				os.Exit(0)
 			case <-time.After(0 * time.Millisecond):
 				p, err := client.Execute(config)
 				TotalPacket += 1
 				TotalDepth += 1
 				utils.LogDebug(p, err)
-				utils.Check.CheckDepthSum(TotalDepth, config.Depth, TotalPacket)
+				if utils.Check.CheckDepthSum(TotalDepth, config.Depth, TotalPacket) == false {
+					return nil
+				}
 			}
 		}
 	case "Auto":
-		payload := utils.Check.CheckAutoMode(config.Mode, config.ICSMode)
+		payload := utils.Output.Execute(config.Mode, config.ICSMode)
 		for {
 			TotalPacket = f.AutoExecute(config, payload)
 			TotalDepth += 1
-			utils.Check.CheckDepthSum(TotalDepth, config.Depth, TotalPacket)
+			if utils.Check.CheckDepthSum(TotalDepth, config.Depth, TotalPacket) == false {
+				return nil
+			}
 		}
 	default:
 		utils.Check.CheckExit("")

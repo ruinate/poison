@@ -11,7 +11,7 @@ import (
 	"context"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
-	"github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"
 	"net"
 	"os"
@@ -35,7 +35,7 @@ func (r *Replay) Execute(config *conf.ReplayModel) {
 	go r.ReplaySpeed()
 	if config.Speed == 0 {
 		numCPU := runtime.NumCPU()
-		logrus.Printf("Limit Send mode---CPU：%d", numCPU)
+		logger.Printf("Limit Send mode---CPU：%d", numCPU)
 		for i := 0; i < numCPU; i++ {
 			go r.R(config)
 		}
@@ -119,10 +119,10 @@ func (r *Replay) FindAllFiles(path string) []string {
 func (r *Replay) PcapResults(packet int, bytes int64) {
 	elapsed := time.Now().Sub(
 		StartTime)
-	logrus.Printf("stopped sending a total of %d packet", packet)
-	logrus.Printf("Total bytes: %d\n", bytes)
-	logrus.Printf("Elapsed time: %v\n", elapsed)
-	logrus.Printf("Mbps: %.2f\n", float64(bytes)/elapsed.Seconds()*8/1000000)
+	logger.Printf("stopped sending a total of %d packet", packet)
+	logger.Printf("Total bytes: %d\n", bytes)
+	logger.Printf("Elapsed time: %v\n", elapsed)
+	logger.Printf("Mbps: %.2f\n", float64(bytes)/elapsed.Seconds()*8/1000000)
 	os.Exit(0)
 }
 
@@ -133,7 +133,7 @@ func (r *Replay) ReplaySpeed() {
 	defer ticker.Stop()
 	// 协程输出发送pps
 	for range ticker.C {
-		logrus.Infof("Sended packet : %d  pps: %d \n", TemporaryPacket, TemporaryPacket/3)
+		logger.Infof("Sended packet : %d  pps: %d \n", TemporaryPacket, TemporaryPacket/3)
 		TemporaryPacket = 0
 	}
 }

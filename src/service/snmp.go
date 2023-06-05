@@ -9,7 +9,7 @@ import (
 	"PoisonFlow/src/conf"
 	"PoisonFlow/src/utils"
 	"github.com/gosnmp/gosnmp"
-	"github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -26,7 +26,7 @@ func (s *SnmpAPP) Execute(config *conf.FlowModel) {
 		s.RUN(version, client)
 		time.Sleep(time.Millisecond * 300)
 	}
-	logrus.Infof("Stoped  SNMP Host : %s ...\n", config.Host)
+	logger.Infof("Stoped  SNMP Host : %s ...\n", config.Host)
 }
 
 // SNMPClient SNMP客户端
@@ -103,9 +103,9 @@ func (s *SnmpAPP) RUN(version string, client *gosnmp.GoSNMP) {
 		// 执行方法
 		snmp, err := s.SNMPGetOID(client)
 		if err != nil {
-			logrus.Infof("snmp: %s   result: %s            \n", version, err.Error())
+			logger.Infof("snmp: %s   result: %s            \n", version, err.Error())
 		} else {
-			logrus.Infof("snmp: %s   result: %s            \n", version, snmp.Result)
+			logger.Infof("snmp: %s   result: %s            \n", version, snmp.Result)
 		}
 	}
 }

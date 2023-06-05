@@ -3,8 +3,9 @@ package utils
 import (
 	"PoisonFlow/src/conf"
 	"encoding/hex"
+	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 	"net"
 	"strings"
 	"time"
@@ -103,7 +104,10 @@ func (p *ProtoConfig) ProcessResult(config *conf.FlowModel, err error) {
 // Execute  运行方法
 func (p *ProtoConfig) Execute(config *conf.FlowModel) (*ProtoConfig, error) {
 	p.HexPayload = p.SwitchHex(config.Payload)
-	var address = fmt.Sprintf("%s:%d", config.Host, config.Port)
+	var (
+		address = fmt.Sprintf("%s:%d", config.Host, config.Port)
+		ErrMode = errors.New("Please check format of Server mode: e.g. \"TCP\", \"UDP\"")
+	)
 	switch config.Mode {
 	case "TCP":
 		{
@@ -128,14 +132,14 @@ func (p *ProtoConfig) Execute(config *conf.FlowModel) (*ProtoConfig, error) {
 			return p.TCP(address, config)
 		}
 	default:
-		return p, nil
+		return nil, ErrMode
 	}
 }
 
 func LogDebug(p *ProtoConfig, err error) {
 	if err != nil {
-		logrus.Errorf(err.Error())
+		logger.Errorf(err.Error())
 	} else {
-		logrus.Infof(p.Result)
+		logger.Infof(p.Result)
 	}
 }

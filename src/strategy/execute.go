@@ -20,6 +20,7 @@ type ExecuteInterface interface {
 	Server(config *conf.FlowModel)
 	Snmp(config *conf.FlowModel)
 	Replay(config *conf.ReplayModel)
+	RPC()
 }
 type Execute struct {
 }
@@ -45,4 +46,8 @@ func (e *Execute) Snmp(config *conf.FlowModel) {
 }
 func (e *Execute) Replay(config *conf.ReplayModel) {
 	ReplayClient.Execute(config)
+}
+
+func (e *Execute) RPC() {
+	FlowClient.RPCExecute()
 }

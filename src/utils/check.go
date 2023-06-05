@@ -2,7 +2,7 @@ package utils
 
 import (
 	"PoisonFlow/src/conf"
-	"github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 	"net"
 	"os"
 )
@@ -116,20 +116,20 @@ func (c *CheckAPP) CheckServer(config *conf.FlowModel) *conf.FlowModel {
 }
 
 func (c *CheckAPP) CheckExit(err string) {
-	logrus.Fatalf("Fatal error: %s\n ", err)
+	logger.Fatalf("Fatal error: %s\n ", err)
 }
 func (c *CheckAPP) CheckDebug(debug string) {
-	logrus.Printf("debug:  %s\n ", debug)
+	logger.Printf("debug:  %s\n ", debug)
 	os.Exit(0)
 }
 func (c *CheckAPP) CheckError(err error) {
 	if err != nil {
-		logrus.Errorf("Fatal error: %s\n ", err)
+		logger.Errorf("Fatal error: %s\n ", err)
 		os.Exit(0)
 	}
 }
 func (c *CheckAPP) CheckTimeout(err error) string {
-	logrus.Fatalln(os.Stderr, "Fatal error: %s\n ", err)
+	logger.Fatalln(os.Stderr, "Fatal error: %s\n ", err)
 	return ""
 }
 
@@ -171,7 +171,7 @@ func (c *CheckAPP) CheckDDosMode(mode string) {
 
 func (c *CheckAPP) CheckDepthSum(CounterDepth, depth, CounterPacket int) bool {
 	if CounterDepth == depth {
-		logrus.Printf("stopped sending a total of %d packets", CounterPacket)
+		logger.Printf("stopped sending a total of %d packets", CounterPacket)
 		os.Exit(0)
 	}
 	return true

@@ -6,7 +6,7 @@ APP=poison
 build: clean
 	@echo "Building..."
 	@go build -ldflags '-w -s' -o ${APP} main.go
-	upx ${APP}
+	upx -9 ${APP}
 
 .PHONY: run
 ## run: runs go run main.go

@@ -8,7 +8,7 @@ package service
 import (
 	"PoisonFlow/src/conf"
 	"PoisonFlow/src/utils"
-	"github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 	"github.com/syossan27/tebata"
 	"net"
 	"os"
@@ -58,9 +58,9 @@ func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Teba
 				results, _ := TCPServer.Read(buf)
 				_, _ = TCPServer.Write(buf[:results])
 				s.Close(TCPServer)
-				logrus.Printf("%s -> %s", TCPServer.RemoteAddr(), TCPServer.LocalAddr())
+				logger.Printf("%s -> %s", TCPServer.RemoteAddr(), TCPServer.LocalAddr())
 			case s := <-Signal:
-				logrus.Errorf("received signal %s, exiting", s.String())
+				logger.Errorf("received signal %s, exiting", s.String())
 				os.Exit(0)
 			}
 
@@ -84,9 +84,9 @@ func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Teba
 				}
 				_, err = UDPServer.WriteToUDP(buf[:length], udpAddr)
 				s.Close(UDPServer)
-				logrus.Printf("%s -> %s", udpAddr, UDPServer.LocalAddr())
+				logger.Printf("%s -> %s", udpAddr, UDPServer.LocalAddr())
 			case s := <-Signal:
-				logrus.Errorf("received signal %s, exiting", s.String())
+				logger.Errorf("received signal %s, exiting", s.String())
 				os.Exit(0)
 			}
 		}

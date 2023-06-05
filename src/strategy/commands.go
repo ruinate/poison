@@ -8,7 +8,7 @@ package strategy
 import (
 	"PoisonFlow/src/conf"
 	"PoisonFlow/src/utils"
-	"github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +31,7 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			Config := utils.Check.CheckSend(&FlowConfig)
-			logrus.Infof("Starting  Send Mode %s ...\n", Config.Mode)
+			logger.Infof("Starting  Send Mode %s ...\n", Config.Mode)
 			ExecuteAPP.Send(Config)
 
 		},
@@ -44,7 +44,7 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			Config := utils.Check.CheckAuto(&FlowConfig)
-			logrus.Infof("Starting Auto Mode %s ...\n", Config.Mode)
+			logger.Infof("Starting Auto Mode %s ...\n", Config.Mode)
 			ExecuteAPP.Auto(Config)
 		},
 		ValidArgs: []string{"-m", "-H", "-d"},
@@ -56,7 +56,7 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			Config := utils.Check.CheckSnmp(&FlowConfig)
-			logrus.Infof("Starting  Host : %s ...\n", Config.Host)
+			logger.Infof("Starting  Host : %s ...\n", Config.Host)
 			ExecuteAPP.Snmp(Config)
 		},
 		ValidArgs: []string{"-H"},
@@ -68,7 +68,7 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			Config := utils.Check.CheckServer(&FlowConfig)
-			logrus.Infof("Starting server Host : %s  Mode : %s...\n", Config.Host, Config.Mode)
+			logger.Infof("Starting server Host : %s  Mode : %s...\n", Config.Host, Config.Mode)
 			ExecuteAPP.Server(Config)
 		},
 		ValidArgs: []string{"-m", "-H"},
@@ -80,7 +80,7 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			Config := utils.Check.CheckDDos(&FlowConfig)
-			logrus.Printf("Starting  Host:%s  Mode:%s ...\n", Config.Host, Config.Mode)
+			logger.Printf("Starting  Host:%s  Mode:%s ...\n", Config.Host, Config.Mode)
 			ExecuteAPP.Ddos(Config)
 		},
 		ValidArgs: []string{"-m", "-H", "-P"},
@@ -92,10 +92,20 @@ var (
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
 			Config := utils.Check.CheckReplay(&ReplayConfig)
-			logrus.Printf("Starting Interface :%s   path :%s...\n", Config.InterFace, Config.FilePath)
+			logger.Printf("Starting Interface :%s   path :%s...\n", Config.InterFace, Config.FilePath)
 			ExecuteAPP.Replay(&ReplayConfig)
 		},
 		ValidArgs: []string{"-i", "-f", "-s"},
+	}
+	// RPC 执行方法
+	RPC = &cobra.Command{
+		Use:   "rpc ",
+		Short: "rpc服务器",
+		Long:  ``,
+		Run: func(cmd *cobra.Command, args []string) {
+			logger.Println("Starting RpcServer...")
+			ExecuteAPP.RPC()
+		},
 	}
 )
 
@@ -123,7 +133,7 @@ func init() {
 	//|_|
 	//`,
 	//)
-	Poison.AddCommand(CompletionCmd, Snmp, Server, Auto, Send, DDOS, Replay)
+	Poison.AddCommand(CompletionCmd, Snmp, Server, Auto, Send, DDOS, Replay, RPC)
 	//Poison.PersistentFlags().StringVarP(&n, "none", "n", "text", "send: 基础发送	auto: 自动发送	hping: 安全防护流量 \n"+
 	//	"snmp：snmp客户端	server: 服务端")
 	// Send flags

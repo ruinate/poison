@@ -6,7 +6,7 @@
 package service
 
 import (
-	"github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 	"os"
 	"time"
 )
@@ -28,7 +28,7 @@ func DDosSpeed() {
 	defer ticker.Stop()
 	// 协程输出发送pps
 	for range ticker.C {
-		logrus.Infof("Sended packet : %d  pps: %d \n", TemporaryPacket, TemporaryPacket/3)
+		logger.Infof("Sended packet : %d  pps: %d \n", TemporaryPacket, TemporaryPacket/3)
 		TotalPacket += TemporaryPacket
 		TemporaryPacket = 0
 	}

@@ -8,18 +8,46 @@ package service
 import (
 	"PoisonFlow/src/conf"
 	"PoisonFlow/src/utils"
-	"github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
+	"net"
+	"net/rpc"
+	"net/rpc/jsonrpc"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 )
 
+var (
+	client utils.ProtoConfig
+)
+
 type Flow interface {
+	RPCExecute()
+	RPC(config *conf.FlowModel, result *string) error
 	Execute(mode string, config *conf.FlowModel) *FlowAPP
 	AutoExecute(config *conf.FlowModel, payload [][2]interface{}) int
 }
 type FlowAPP struct {
+}
+
+func (f *FlowAPP) RPCExecute() {
+	listener, _ := net.Listen("tcp", ":1234")
+	_ = rpc.RegisterName("Flow", new(FlowAPP))
+	defer listener.Close()
+	for {
+		conn, _ := listener.Accept()
+		go rpc.ServeCodec(jsonrpc.NewServerCodec(conn)) // 支持高并发
+	}
+}
+
+func (f *FlowAPP) RPC(config *conf.FlowModel, result *string) error {
+	p, err := client.Execute(config)
+	if err != nil {
+		*result = err.Error()
+	}
+	utils.LogDebug(p, err)
+	return nil
 }
 
 func (f *FlowAPP) Execute(mode string, config *conf.FlowModel) *FlowAPP {
@@ -27,12 +55,11 @@ func (f *FlowAPP) Execute(mode string, config *conf.FlowModel) *FlowAPP {
 	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
 	switch mode {
 	case "Send":
-		client := new(utils.ProtoConfig)
 		for {
 			time.Sleep(time.Millisecond * 300)
 			select {
 			case _ = <-Signal:
-				logrus.Printf("stopped sending a total of %d packets", TotalPacket)
+				logger.Printf("stopped sending a total of %d packets", TotalPacket)
 				os.Exit(0)
 			case <-time.After(0 * time.Millisecond):
 				p, err := client.Execute(config)
@@ -41,7 +68,6 @@ func (f *FlowAPP) Execute(mode string, config *conf.FlowModel) *FlowAPP {
 				utils.LogDebug(p, err)
 				utils.Check.CheckDepthSum(TotalDepth, config.Depth, TotalPacket)
 			}
-
 		}
 	case "Auto":
 		payload := utils.Check.CheckAutoMode(config.Mode, config.ICSMode)
@@ -57,12 +83,11 @@ func (f *FlowAPP) Execute(mode string, config *conf.FlowModel) *FlowAPP {
 }
 
 func (f *FlowAPP) AutoExecute(config *conf.FlowModel, payload [][2]interface{}) int {
-	client := new(utils.ProtoConfig)
 	for _, P := range payload {
 		time.Sleep(time.Millisecond * 300)
 		select {
 		case _ = <-Signal:
-			logrus.Printf("stopped sending a total of %d packets", TotalPacket)
+			logger.Printf("stopped sending a total of %d packets", TotalPacket)
 			os.Exit(0)
 		case <-time.After(0 * time.Millisecond):
 			TotalPacket += 1

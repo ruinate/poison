@@ -23,7 +23,7 @@ var (
 )
 
 type Flow interface {
-	RPCExecute()
+	RPCExecute() error
 	RPC(config *conf.FlowModel, result *string) error
 	Execute(mode string, config *conf.FlowModel) *FlowAPP
 	AutoExecute(config *conf.FlowModel, payload [][2]interface{}) int
@@ -31,8 +31,11 @@ type Flow interface {
 type FlowAPP struct {
 }
 
-func (f *FlowAPP) RPCExecute() {
-	listener, _ := net.Listen("tcp", ":1234")
+func (f *FlowAPP) RPCExecute() error {
+	listener, err := net.Listen("tcp", ":1234")
+	if err != nil {
+		return err
+	}
 	_ = rpc.RegisterName("Flow", new(FlowAPP))
 	defer listener.Close()
 	for {

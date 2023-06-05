@@ -124,12 +124,12 @@ func (c *CheckAPP) CheckDebug(debug string) {
 }
 func (c *CheckAPP) CheckError(err error) {
 	if err != nil {
-		logger.Errorf("Fatal error: %s\n ", err)
+		logger.Errorf("Fatal error: %s ", err)
 		os.Exit(0)
 	}
 }
 func (c *CheckAPP) CheckTimeout(err error) string {
-	logger.Fatalln(os.Stderr, "Fatal error: %s\n ", err)
+	logger.Fatalln(os.Stderr, "Fatal error: %s ", err)
 	return ""
 }
 

@@ -9,9 +9,6 @@ import (
 	"PoisonFlow/src/conf"
 	"PoisonFlow/src/utils"
 	logger "github.com/sirupsen/logrus"
-	"net"
-	"net/rpc"
-	"net/rpc/jsonrpc"
 	"os"
 	"os/signal"
 	"syscall"
@@ -23,38 +20,10 @@ var (
 )
 
 type Flow interface {
-	RPCExecute() error
-	RPC(config *conf.FlowModel, result *error) error
 	Execute(mode string, config *conf.FlowModel) *FlowAPP
 	AutoExecute(config *conf.FlowModel, payload [][2]interface{}) int
 }
 type FlowAPP struct {
-}
-
-func (f *FlowAPP) RPCExecute() error {
-	listener, err := net.Listen("tcp", ":1234")
-	if err != nil {
-		return err
-	}
-	_ = rpc.RegisterName("Flow", new(FlowAPP))
-	defer listener.Close()
-	for {
-		conn, _ := listener.Accept()
-		go rpc.ServeCodec(jsonrpc.NewServerCodec(conn)) // 支持高并发
-	}
-}
-
-func (f *FlowAPP) RPC(config *conf.FlowModel, result *error) error {
-	err := utils.Check.CheckSend(config)
-	if err != nil {
-		return err
-	}
-	p, err := client.Execute(config)
-	utils.LogDebug(p, err)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (f *FlowAPP) Execute(mode string, config *conf.FlowModel) *FlowAPP {
@@ -67,6 +36,7 @@ func (f *FlowAPP) Execute(mode string, config *conf.FlowModel) *FlowAPP {
 			select {
 			case _ = <-Signal:
 				logger.Printf("stopped sending a total of %d packets", TotalPacket)
+				os.Exit(0)
 			case <-time.After(0 * time.Millisecond):
 				p, err := client.Execute(config)
 				TotalPacket += 1

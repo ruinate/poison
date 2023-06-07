@@ -6,6 +6,7 @@
 package conf
 
 type FlowModel struct {
+	APPMode string
 	Depth   int
 	Mode    string
 	ICSMode string

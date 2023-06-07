@@ -11,7 +11,7 @@
 
     / server
     Because there are too many open sockets, you need to set
-    uname -SHn  70000
+    ulimit -SHn  70000
     / ping
     sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
 

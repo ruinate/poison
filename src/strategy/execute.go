@@ -21,7 +21,6 @@ type ExecuteInterface interface {
 	Snmp(config *conf.FlowModel)
 	Replay(config *conf.ReplayModel)
 	RPC() error
-	PING(config *conf.FlowModel)
 }
 type Execute struct {
 }
@@ -50,9 +49,7 @@ func (e *Execute) Replay(config *conf.ReplayModel) {
 }
 
 func (e *Execute) RPC() error {
-	err := FlowClient.RPCExecute()
+	client := new(service.RPCModel)
+	err := client.Execute()
 	return err
-}
-func (e *Execute) PING(config *conf.FlowModel) {
-	FlowClient.Execute("Send", config)
 }

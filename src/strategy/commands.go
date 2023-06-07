@@ -135,20 +135,6 @@ var (
 			}
 		},
 	}
-	// Ping 执行方法
-	Ping = &cobra.Command{
-		Use:   "ping ",
-		Short: "ping ICMP方法",
-		Long:  ``,
-		Run: func(cmd *cobra.Command, args []string) {
-			err := utils.Check.CheckSend(&FlowConfig)
-			if err != nil {
-				utils.Check.CheckError(err)
-				return
-			}
-			ExecuteAPP.PING(&FlowConfig)
-		},
-	}
 )
 
 func init() {
@@ -175,7 +161,7 @@ func init() {
 	//|_|
 	//`,
 	//)
-	Poison.AddCommand(CompletionCmd, Snmp, Server, Auto, Send, DDOS, Replay, RPC, Ping)
+	Poison.AddCommand(CompletionCmd, Snmp, Server, Auto, Send, DDOS, Replay, RPC)
 	//Poison.PersistentFlags().StringVarP(&n, "none", "n", "text", "send: 基础发送	auto: 自动发送	hping: 安全防护流量 \n"+
 	//	"snmp：snmp客户端	server: 服务端")
 	// Send flags
@@ -205,10 +191,6 @@ func init() {
 	Replay.Flags().IntVarP(&ReplayConfig.Speed, "speed", "s", 100000, "速度载体")
 	Replay.Flags().StringVarP(&ReplayConfig.FilePath, "file", "f", "", "路径载体")
 	Replay.Flags().IntVarP(&ReplayConfig.Depth, "depth", "d", 1, "循环载体")
-	//PING
-	Ping.Flags().StringVarP(&FlowConfig.Mode, "mode", "m", "ICMP", "模式载体:ICMP")
-	Ping.Flags().StringVarP(&FlowConfig.Host, "host", "H", "127.0.0.1", "Host载体")
-	Ping.Flags().IntVarP(&FlowConfig.Depth, "depth", "d", 1, "循环载体")
 	// Flag TAB
 	// send
 	err := Send.RegisterFlagCompletionFunc(mode, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -281,13 +263,6 @@ func init() {
 		return []string{}, cobra.ShellCompDirectiveDefault
 	})
 	err = Replay.RegisterFlagCompletionFunc(depth, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{}, cobra.ShellCompDirectiveDefault
-	})
-	// PING
-	err = Ping.RegisterFlagCompletionFunc(mode, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{"ICMP"}, cobra.ShellCompDirectiveDefault
-	})
-	err = Ping.RegisterFlagCompletionFunc(host, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{}, cobra.ShellCompDirectiveDefault
 	})
 	if err != nil {

@@ -9,12 +9,11 @@
     go net
 #### 安装教程
 
-    / server
+    / server config
     Because there are too many open sockets, you need to set
     ulimit -SHn  70000
-    / ping
+    / ping  config
     sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
-
     insatll-
     make 
     

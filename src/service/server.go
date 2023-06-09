@@ -26,7 +26,7 @@ var buf = make([]byte, 1024)
 // Execute 监听执行
 func (s *ServerApp) Execute(config *conf.FlowModel) {
 	t := tebata.New(syscall.SIGINT, syscall.SIGTERM)
-	for port := 1; port < 65535; {
+	for port := config.Ports.StartPort; port < config.Ports.EndPort; {
 		port++
 		go func(port string) {
 			if err := s.ExecuteListen(config.Host, port, config.Mode, t); err != nil {

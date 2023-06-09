@@ -184,6 +184,8 @@ func init() {
 	// Server flags
 	Server.Flags().StringVarP(&FlowConfig.Host, "host", "H", "0.0.0.0", "Host载体")
 	Server.Flags().StringVarP(&FlowConfig.Mode, "mode", "m", "TCP", "模式载体")
+	Server.Flags().IntVarP(&FlowConfig.Ports.StartPort, "sp", "s", 1, "监听开始端口")
+	Server.Flags().IntVarP(&FlowConfig.Ports.EndPort, "ep", "e", 65535, "监听结束端口")
 	// Snmp flags
 	Snmp.Flags().StringVarP(&FlowConfig.Host, "host", "H", "0.0.0.0", "Host载体")
 	// Replay flags

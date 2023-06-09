@@ -14,6 +14,11 @@ type FlowModel struct {
 	Port    int
 	Payload string
 	Scan    int
+	Ports   PortRange
+}
+type PortRange struct {
+	StartPort int
+	EndPort   int
 }
 
 type ReplayModel struct {

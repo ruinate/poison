@@ -109,10 +109,17 @@ func (p *ProtoConfig) ProcessResult(config *conf.FlowModel, err error) {
 
 // Execute  运行方法
 func (p *ProtoConfig) Execute(config *conf.FlowModel) (*ProtoConfig, error) {
+	if config.Port == 50012 {
+		client, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", config.Host, 135), time.Millisecond*300)
+		// 连接出错则打印错误消息并退出程序
+		if err != nil {
+			return nil, err
+		}
+		_, err = client.Write(p.SwitchHex(DRPRPCPayload))
+		p.ProcessResult(config, p.Receive(client))
+	}
 	p.HexPayload = p.SwitchHex(config.Payload)
-	var (
-		address = fmt.Sprintf("%s:%d", config.Host, config.Port)
-	)
+	address := fmt.Sprintf("%s:%d", config.Host, config.Port)
 	switch config.Mode {
 	case "TCP":
 		return p.TCP(address, config)

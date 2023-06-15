@@ -57,6 +57,9 @@ func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Teba
 				}
 				results, _ := TCPServer.Read(buf)
 				_, _ = TCPServer.Write(buf[:results])
+				if port == "135" {
+					time.Sleep(time.Second * 5)
+				}
 				s.Close(TCPServer)
 				logger.Printf("%s -> %s", TCPServer.RemoteAddr(), TCPServer.LocalAddr())
 			case s := <-Signal:

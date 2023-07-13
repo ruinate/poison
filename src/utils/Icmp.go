@@ -30,7 +30,7 @@ func PING(host string) error {
 	}
 	pinger.Timeout = time.Second * 3
 	pinger.Count = 4
-	pinger.Size = 64
+	pinger.Size = 56
 	pinger.TTL = 128
 	logger.Printf("PING %s (%s):\n", pinger.Addr(), pinger.IPAddr())
 	err = pinger.Run()

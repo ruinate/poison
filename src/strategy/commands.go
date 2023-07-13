@@ -168,7 +168,8 @@ func init() {
 	Send.Flags().StringVarP(&FlowConfig.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP、ICMP")
 	Send.Flags().StringVarP(&FlowConfig.Host, "host", "H", "0.0.0.0", "Host载体")
 	Send.Flags().StringVarP(&FlowConfig.Payload, "payload", "p", utils.RandStr(20), "数据载体")
-	Send.Flags().IntVarP(&FlowConfig.Port, "port", "P", 22, "端口载体")
+	Send.Flags().IntVarP(&FlowConfig.Sport, "sport", "s", 0, "源端口载体")
+	Send.Flags().IntVarP(&FlowConfig.Port, "port", "P", 22, "目的端口载体")
 	Send.Flags().IntVarP(&FlowConfig.Depth, "depth", "d", 1, "循环载体")
 	// Auto flags
 	Auto.Flags().StringVarP(&FlowConfig.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP、ICS、BLACK")

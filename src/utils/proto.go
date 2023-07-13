@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
+	"math/rand"
 	"net"
 	"strings"
 	"time"
@@ -17,11 +18,23 @@ type ProtoConfig struct {
 
 var (
 	maxLength = 20 // 设置result最大长度为20个字符
+
 )
 
 // TCP 客户端
 func (p *ProtoConfig) TCP(address string, config *conf.FlowModel) (*ProtoConfig, error) {
-	client, err := net.DialTimeout("tcp", address, time.Millisecond*300)
+	rand.Seed(time.Now().UnixNano())
+	// 判断源端口是否存在，不存在生成随机数
+	if config.Sport == 0 {
+		config.Sport = rand.Intn(16635-1024+1) + 1024
+	}
+	//  本地地址
+	localAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", config.Sport))
+	dialer := &net.Dialer{
+		LocalAddr: localAddr,
+	}
+	// 连接服务端
+	client, err := dialer.Dial("tcp", address)
 	// 连接出错则打印错误消息并退出程序
 	if err != nil {
 		return nil, err

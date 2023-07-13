@@ -12,6 +12,7 @@ type FlowModel struct {
 	ICSMode string
 	Host    string
 	Port    int
+	Sport   int
 	Payload string
 	Scan    int
 	Ports   PortRange

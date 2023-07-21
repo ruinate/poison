@@ -8,6 +8,16 @@ build: clean
 	@go build -ldflags '-w -s' -o ${APP} main.go
 	upx -9 ${APP}
 
+.PHONY: build_win
+## build: build the application
+build_win: clean
+	@echo "win:Building..."
+	@GOOS=windows GOARCH=amd64 go build -ldflags '-w -s' -o poison.exe main.go
+	upx -9 poison.exe
+
+
+
+
 .PHONY: run
 ## run: runs go run main.go
 run:

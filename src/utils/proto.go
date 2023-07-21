@@ -26,7 +26,7 @@ func (p *ProtoConfig) TCP(address string, config *conf.FlowModel) (*ProtoConfig,
 	rand.Seed(time.Now().UnixNano())
 	// 判断源端口是否存在，不存在生成随机数
 	if config.Sport == 0 {
-		config.Sport = rand.Intn(16635-1024+1) + 1024
+		config.Sport = rand.Intn(16635-1024+1) + 3000
 	}
 	//  本地地址
 	localAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", config.Sport))

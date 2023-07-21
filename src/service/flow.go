@@ -74,6 +74,7 @@ func (f *FlowAPP) AutoExecute(config *conf.FlowModel, payload [][2]interface{}) 
 			TotalPacket += 1
 			config.Port = P[0].(int)
 			config.Payload = P[1].(string)
+			config.Sport = 0
 			p, err := client.Execute(config)
 			utils.LogDebug(p, err)
 		}

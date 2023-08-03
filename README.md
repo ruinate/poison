@@ -8,12 +8,6 @@
     软件架构说明
     go net
 #### 安装教程
-
-    / server config
-    Because there are too many open sockets, you need to set
-    ulimit -SHn  70000
-    / ping  config
-    sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
     insatll-
     make 
     
@@ -86,3 +80,20 @@
     4.  新建 Pull Request
 
 
+
+#### 报错处理
+
+    / server config
+    Because there are too many open sockets, you need to set
+    ulimit -SHn  70000
+    / ping  config
+    sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
+    / supervisorexited: poison_server (exit status 0; expected)
+    句柄数不够,修改/etc/supervisor/supervisord.conf 
+    [supervisord]
+    ...
+    minfds=102400
+    ...
+
+    
+    

@@ -32,6 +32,7 @@ func (p *ProtoConfig) TCP(address string, config *conf.FlowModel) (*ProtoConfig,
 	localAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", config.Sport))
 	dialer := &net.Dialer{
 		LocalAddr: localAddr,
+		Timeout:   time.Second * 3,
 	}
 	// 连接服务端
 	client, err := dialer.Dial("tcp", address)
@@ -95,7 +96,7 @@ func (p *ProtoConfig) Close(conn net.Conn) {
 	}
 }
 
-//SwitchHex  转换为16进制
+// SwitchHex  转换为16进制
 func (p *ProtoConfig) SwitchHex(payload string) []byte {
 	var HexData []byte
 	PayloadSplit := strings.Split(payload, "|")

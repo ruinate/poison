@@ -1,4 +1,4 @@
-// Package config -----------------------------
+// Package setting  -----------------------------
 // @file      : config.go
 // @author    : fzf
 // @time      : 2023/11/20 上午10:50

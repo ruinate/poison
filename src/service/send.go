@@ -19,19 +19,24 @@ type SendStruct struct{}
 
 func (s *SendStruct) Execute(config *model.InterfaceModel) {
 	signal.Notify(setting.Signal, syscall.SIGINT, syscall.SIGTERM)
-	for {
-		time.Sleep(time.Millisecond * 300)
-		select {
-		case _ = <-setting.Signal:
-			logger.Fatalln("stopped sending a total of %d packets", setting.TotalPacket)
-		case <-time.After(0 * time.Millisecond):
-			setting.TotalPacket += 1
-			setting.TotalDepth += 1
-			if err := utils.Client.Execute(config); err != nil {
-				logger.Errorln(err)
-			}
-			if setting.TotalDepth == config.Depth {
+	switch config.SendMode {
+	case model.MAC:
+
+	case model.ROUTE:
+		for {
+			time.Sleep(time.Millisecond * 300)
+			select {
+			case _ = <-setting.Signal:
 				logger.Fatalln("stopped sending a total of %d packets", setting.TotalPacket)
+			case <-time.After(0 * time.Millisecond):
+				setting.TotalPacket += 1
+				setting.TotalDepth += 1
+				if err := utils.Client.Execute(config); err != nil {
+					logger.Errorln(err)
+				}
+				if setting.TotalDepth == config.Depth {
+					logger.Fatalln("stopped sending a total of %d packets", setting.TotalPacket)
+				}
 			}
 		}
 	}

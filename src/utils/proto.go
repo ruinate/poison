@@ -7,7 +7,11 @@ package utils
 
 import (
 	"encoding/hex"
+	"github.com/google/gopacket"
+	"github.com/google/gopacket/layers"
+	"github.com/google/gopacket/pcap"
 	logger "github.com/sirupsen/logrus"
+	"log"
 	"math/rand"
 	"net"
 	"poison/src/model"
@@ -48,13 +52,13 @@ func (c ClientView) Receive(conn net.Conn) (string, error) {
 
 func (c ClientView) ProcessResult(message string, err error) {
 	switch c.config.Mode {
-	case model.PROTOTCP:
+	case model.PROTOTCP, model.PROTOBLACK:
 		if err != nil {
 			logger.Errorf("%s connected to the %s  port: %d payload: %#v", c.config.Mode, c.config.DstHost, c.config.DstPort, err.Error())
 		} else {
 			logger.Infof("%s connected to the %s  port: %d payload: %#v", c.config.Mode, c.config.DstHost, c.config.DstPort, message)
 		}
-	case model.PROTOUDP:
+	case model.PROTOUDP, model.PROTOICS:
 		if len(c.config.Payload) > maxLength {
 			logger.Infof("%s connected to the %s  port: %d payload: %#v", c.config.Mode, c.config.DstHost,
 				c.config.DstPort, c.config.Payload[:maxLength])
@@ -66,9 +70,12 @@ func (c ClientView) ProcessResult(message string, err error) {
 }
 
 func (c ClientView) Close(client net.Conn) {
-	if err := client.Close(); err != nil {
+	if client != nil {
+		if err := client.Close(); err != nil {
 
+		}
 	}
+
 }
 
 // SwitchHex  转换为16进制
@@ -132,27 +139,63 @@ func (c ClientModel) UDP() error {
 	return nil
 }
 
+func (c ClientModel) MAC() error {
+	// 获取设备的句柄
+	handle, err := pcap.OpenLive(c.config.InterFace, 1600, true, pcap.BlockForever)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer handle.Close()
+	// 构建以太网帧
+	srcMAC, _ := net.ParseMAC(c.config.SrcMAC) // 发送者MAC地址
+	dstMAC, _ := net.ParseMAC(c.config.DstMAC) // 接收者MAC地址
+	ethLayer := &layers.Ethernet{
+		SrcMAC:       srcMAC,
+		DstMAC:       dstMAC,
+		EthernetType: 0x88a4, // 假设发送的是IPv4数据包
+	}
+
+	// 构建packet
+	buffer := gopacket.NewSerializeBuffer()
+	options := gopacket.SerializeOptions{
+		FixLengths:       true,
+		ComputeChecksums: true,
+	}
+	err = gopacket.SerializeLayers(buffer, options, ethLayer, gopacket.Payload(c.config.HexPayload))
+	if err != nil {
+		logger.Fatal(err)
+	}
+	// 发送数据包
+	err = handle.WritePacketData(buffer.Bytes())
+	logger.Infof("%s connected  %s  to the  payload: %#v", c.config.DstMAC,
+		c.config.SrcMAC, c.config.Payload)
+	return nil
+}
+
 func (c ClientModel) Execute(config *model.InterfaceModel) error {
 	c.config = config
 	c.init()
-	switch strings.ToUpper(c.config.Mode) {
-
-	case model.PROTOTCP:
-		return c.TCP()
-	case model.PROTOUDP:
-		return c.UDP()
-	case model.PROTOICS:
-		go func() {
-			wg.Add(1)
-			c.UDP()
-			c.TCP()
-		}()
-		wg.Wait()
-		return nil
-	case model.PROTOBLACK:
-		return c.TCP()
-	default:
-		logger.Errorln("模式输入错误")
-		return nil
+	switch c.config.SendMode {
+	case model.ROUTE:
+		switch strings.ToUpper(c.config.Mode) {
+		case model.PROTOTCP:
+			return c.TCP()
+		case model.PROTOUDP:
+			return c.UDP()
+		case model.PROTOICS:
+			go func() {
+				c.TCP()
+				c.UDP()
+			}()
+			return nil
+		case model.PROTOBLACK:
+			return c.TCP()
+		default:
+			logger.Errorln("模式输入错误")
+			return nil
+		}
+	case model.MAC:
+		return c.MAC()
 	}
+	return nil
 }

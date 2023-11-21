@@ -27,15 +27,20 @@ const (
 	PROTOUDP        = "UDP"
 	PROTOBLACK      = "BLACK"
 	PROTOICS        = "ICS"
+	ROUTE           = "ROUTE"
+	MAC             = "MAC"
 )
 
 type Stream struct {
+	SrcMAC     string
+	DstMAC     string
 	DstHost    string
 	SrcHost    string
 	DstPort    int
 	SrcPort    int
 	Payload    string
 	Depth      int
+	SendMode   string
 	Mode       string
 	TmpSrcPort int
 	HexPayload []byte
@@ -67,6 +72,10 @@ type InterfaceModel struct {
 	ReplayModel
 	ServerModel
 	APP
+}
+
+type TestModel struct {
+	Test string
 }
 
 var Config InterfaceModel

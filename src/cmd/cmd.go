@@ -162,7 +162,8 @@ func init() {
 	//`,
 	//)
 	PoisonCmd.AddCommand(ServerCmd, SnmpCmd, SendCmd, PingCmd, AutoCmd, ReplayCmd, RPCCmd, DDOSCmd, CompletionCmd)
-
+	SendCmd.Flags().StringVarP(&model.Config.DstMAC, "dstmac", "c", "00:11:22:33:44:55", "目的MAC地址")
+	SendCmd.Flags().StringVarP(&model.Config.SrcMAC, "srcmac", "C", "66:77:88:99:aa:bb", "源目的MAC地址")
 	SendCmd.Flags().StringVarP(&model.Config.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP")
 	SendCmd.Flags().StringVarP(&model.Config.DstHost, "dsthost", "H", "127.0.0.1", "目的地址")
 	SendCmd.Flags().StringVarP(&model.Config.SrcHost, "srchost", "S", "0.0.0.0", "源目的地址")
@@ -170,6 +171,8 @@ func init() {
 	SendCmd.Flags().IntVarP(&model.Config.SrcPort, "sport", "s", 0, "源端口")
 	SendCmd.Flags().IntVarP(&model.Config.DstPort, "port", "P", 22, "目的端口")
 	SendCmd.Flags().IntVarP(&model.Config.Depth, "depth", "d", 1, "循环载体")
+	SendCmd.Flags().StringVarP(&model.Config.SendMode, "sendmode", "M", "ROUTE", "发送模式：MAC和ROUTE")
+	SendCmd.Flags().StringVarP(&model.Config.InterFace, "interface", "i", "enp2s0", "网卡名称")
 	// Auto flags
 	AutoCmd.Flags().StringVarP(&model.Config.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP、ICS、BLACK")
 	AutoCmd.Flags().StringVarP(&model.Config.DstHost, "dsthost", "H", "127.0.0.1", "Host载体")
@@ -199,6 +202,7 @@ func init() {
 	ReplayCmd.Flags().StringVarP(&model.Config.FilePath, "file", "f", "", "路径载体")
 	ReplayCmd.Flags().IntVarP(&model.Config.Depth, "depth", "d", 1, "循环载体")
 	// Flag TAB
+	inter := utils.TotalDevice()
 	// send
 	err := SendCmd.RegisterFlagCompletionFunc(model.MODE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"TCP", "UDP"}, cobra.ShellCompDirectiveDefault
@@ -214,6 +218,10 @@ func init() {
 	})
 	err = SendCmd.RegisterFlagCompletionFunc(model.DEPTH, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+
+	err = SendCmd.RegisterFlagCompletionFunc(model.REPLAYINTERFACE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return inter, cobra.ShellCompDirectiveDefault
 	})
 
 	// auto
@@ -256,7 +264,7 @@ func init() {
 		return []string{}, cobra.ShellCompDirectiveDefault
 	})
 	// replay
-	inter := utils.TotalDevice()
+
 	err = ReplayCmd.RegisterFlagCompletionFunc(model.REPLAYINTERFACE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return inter, cobra.ShellCompDirectiveDefault
 	})

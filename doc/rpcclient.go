@@ -6,7 +6,6 @@
 package main
 
 import (
-	"PoisonFlow/src/conf"
 	logger "github.com/sirupsen/logrus"
 	"net"
 	"net/rpc"
@@ -14,7 +13,7 @@ import (
 )
 
 var (
-	config = conf.FlowModel{
+	config = model.FlowModel{
 		Depth:   1,
 		Mode:    "TCP",
 		Host:    "10.30.5.103",

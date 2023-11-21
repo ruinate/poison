@@ -6,50 +6,33 @@
 package strategy
 
 import (
-	"PoisonFlow/src/conf"
-	"PoisonFlow/src/service"
+	"poison/src/model"
+	"poison/src/service"
 )
 
-var FlowClient service.Flow = &service.FlowAPP{}
-var ReplayClient service.ReplayInterFace = &service.Replay{}
-
-type ExecuteInterface interface {
-	Send(config *conf.FlowModel)
-	Auto(config *conf.FlowModel)
-	Ddos(config *conf.FlowModel)
-	Server(config *conf.FlowModel)
-	Snmp(config *conf.FlowModel)
-	Replay(config *conf.ReplayModel)
-	RPC() error
-}
-type Execute struct {
+type Factory interface {
+	Execute(config *model.InterfaceModel)
 }
 
-func (e *Execute) Send(config *conf.FlowModel) {
-	FlowClient.Execute("Send", config)
-}
-func (e *Execute) Auto(config *conf.FlowModel) {
-	FlowClient.Execute("Auto", config)
-}
-func (e *Execute) Ddos(config *conf.FlowModel) {
-	client := new(service.DdosAPP)
-	go service.DDosSpeed()
-	client.Execute(config)
-}
-func (e *Execute) Server(config *conf.FlowModel) {
-	client := new(service.ServerApp)
-	client.Execute(config)
-}
-func (e *Execute) Snmp(config *conf.FlowModel) {
-	client := new(service.SnmpAPP)
-	client.Execute(config)
-}
-func (e *Execute) Replay(config *conf.ReplayModel) {
-	ReplayClient.Execute(config)
-}
-
-func (e *Execute) RPC() error {
-	client := new(service.RPCModel)
-	err := client.Execute()
-	return err
+func NewClient(config *model.InterfaceModel) Factory {
+	switch config.APPMode {
+	case model.SEND:
+		return &service.SendStruct{}
+	case model.AUTO:
+		return &service.AutoStruct{}
+	case model.DDOS:
+		return &service.DDOSStruct{}
+	case model.REPLAY:
+		return &service.ReplayStruct{}
+	case model.RPC:
+		return &service.RPC{}
+	case model.SERVER:
+		return &service.ServerStruct{}
+	case model.SNMP:
+		return &service.SnmpStruct{}
+	case model.PING:
+		return &service.PingStruct{}
+	default:
+		return nil
+	}
 }

@@ -6,6 +6,7 @@
 package utils
 
 import (
+	logger "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 )
@@ -26,6 +27,8 @@ func FindAllFiles(path string) []string {
 		}
 		return nil
 	})
-	Check.CheckError(err)
+	if err != nil {
+		logger.Fatalln(err)
+	}
 	return file
 }

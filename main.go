@@ -1,15 +1,13 @@
 package main
 
 import (
-	"PoisonFlow/src/strategy"
-	"os"
+	logger "github.com/sirupsen/logrus"
+	"poison/src/cmd"
 )
 
 // main 主执行程序
 func main() {
-
-	err := strategy.Poison.Execute()
-	if err != nil {
-		os.Exit(0)
+	if err := cmd.PoisonCmd.Execute(); err != nil {
+		logger.Fatalln(err)
 	}
 }

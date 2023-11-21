@@ -6,47 +6,47 @@
 package service
 
 import (
-	"PoisonFlow/src/conf"
-	"PoisonFlow/src/utils"
 	logger "github.com/sirupsen/logrus"
 	"github.com/syossan27/tebata"
 	"net"
 	"os"
 	"os/signal"
+	"poison/src/model"
+	"poison/src/service/setting"
 	"strconv"
 	"syscall"
 	"time"
 )
 
-type ServerApp struct {
+type ServerStruct struct {
 }
 
 var buf = make([]byte, 1024)
 
 // Execute 监听执行
-func (s *ServerApp) Execute(config *conf.FlowModel) {
+func (s *ServerStruct) Execute(config *model.InterfaceModel) {
 	t := tebata.New(syscall.SIGINT, syscall.SIGTERM)
-	for port := config.Ports.StartPort; port < config.Ports.EndPort; {
+	for port := config.StartPort; port < config.EndPort; {
 		port++
 		go func(port string) {
-			if err := s.ExecuteListen(config.Host, port, config.Mode, t); err != nil {
+			if err := s.ExecuteListen(config.DstHost, port, config.Mode, t); err != nil {
 			}
 		}(strconv.Itoa(port))
 	}
-	if err := s.ExecuteListen(config.Host, strconv.Itoa(65535), config.Mode, t); err != nil {
+	if err := s.ExecuteListen(config.DstHost, strconv.Itoa(65535), config.Mode, t); err != nil {
 	}
 }
 
 // ExecuteListen  监听主程序
-func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Tebata) error {
-	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
+func (s *ServerStruct) ExecuteListen(address, port, protocol string, t *tebata.Tebata) error {
+	signal.Notify(setting.Signal, syscall.SIGINT, syscall.SIGTERM)
 	if protocol == "TCP" {
 		conn, err := net.Listen("tcp", address+":"+port)
 		if err != nil {
 			return err
 		}
-		err = t.Reserve(conn.Close)
-		utils.Check.CheckError(err)
+		_ = t.Reserve(conn.Close)
+
 		for {
 			select {
 			case <-time.After(0 * time.Millisecond):
@@ -62,7 +62,7 @@ func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Teba
 				}
 				s.Close(TCPServer)
 				logger.Printf("%s -> %s", TCPServer.RemoteAddr(), TCPServer.LocalAddr())
-			case s := <-Signal:
+			case s := <-setting.Signal:
 				logger.Errorf("received signal %s, exiting", s.String())
 				os.Exit(0)
 			}
@@ -88,7 +88,7 @@ func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Teba
 				_, err = UDPServer.WriteToUDP(buf[:length], udpAddr)
 				s.Close(UDPServer)
 				logger.Printf("%s -> %s", udpAddr, UDPServer.LocalAddr())
-			case s := <-Signal:
+			case s := <-setting.Signal:
 				logger.Errorf("received signal %s, exiting", s.String())
 				os.Exit(0)
 			}
@@ -97,7 +97,7 @@ func (s *ServerApp) ExecuteListen(address, port, protocol string, t *tebata.Teba
 }
 
 // Close 服务端关闭连接
-func (s *ServerApp) Close(client net.Conn) {
+func (s *ServerStruct) Close(client net.Conn) {
 	err := client.Close()
 	if err != nil {
 		return

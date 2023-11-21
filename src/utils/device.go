@@ -17,7 +17,6 @@ func TotalDevice() []string {
 		if strings.IndexRune(iface.Name, 'e') == 0 || strings.IndexRune(iface.Name, 'w') == 0 || strings.IndexRune(iface.Name, 'l') == 0 {
 			inter = append(inter, iface.Name)
 		}
-
 	}
 	return inter
 }

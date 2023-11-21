@@ -6,19 +6,18 @@
 package service
 
 import (
-	"PoisonFlow/src/conf"
-	"PoisonFlow/src/utils"
 	"github.com/gosnmp/gosnmp"
 	logger "github.com/sirupsen/logrus"
+	"poison/src/model"
 	"time"
 )
 
-type SnmpAPP struct {
+type SnmpStruct struct {
 	Result string
 }
 
 // Execute SNMP执行程序
-func (s *SnmpAPP) Execute(config *conf.FlowModel) {
+func (s *SnmpStruct) Execute(config *model.InterfaceModel) {
 	SNMPVersion := [...]string{"v1", "v2", "v3"}
 	for _, version := range SNMPVersion {
 		// 获取客户端
@@ -26,16 +25,16 @@ func (s *SnmpAPP) Execute(config *conf.FlowModel) {
 		s.RUN(version, client)
 		time.Sleep(time.Millisecond * 300)
 	}
-	logger.Infof("Stoped  SNMP Host : %s ...\n", config.Host)
+	logger.Infof("Stoped  SNMP Host : %s ...\n", config.DstHost)
 }
 
 // SNMPClient SNMP客户端
-func (s *SnmpAPP) SNMPClient(version string, config *conf.FlowModel) *gosnmp.GoSNMP {
+func (s *SnmpStruct) SNMPClient(version string, config *model.InterfaceModel) *gosnmp.GoSNMP {
 	switch version {
 	case "v1":
 		{
 			return &gosnmp.GoSNMP{
-				Target:    config.Host,
+				Target:    config.DstHost,
 				Port:      161,
 				Community: "public",
 				Version:   gosnmp.Version1,
@@ -45,7 +44,7 @@ func (s *SnmpAPP) SNMPClient(version string, config *conf.FlowModel) *gosnmp.GoS
 	case "v2":
 		{
 			return &gosnmp.GoSNMP{
-				Target:    config.Host,
+				Target:    config.DstHost,
 				Port:      161,
 				Community: "public",
 				Version:   gosnmp.Version2c,
@@ -55,7 +54,7 @@ func (s *SnmpAPP) SNMPClient(version string, config *conf.FlowModel) *gosnmp.GoS
 	case "v3":
 		{
 			return &gosnmp.GoSNMP{
-				Target:        config.Host,
+				Target:        config.DstHost,
 				Port:          161,
 				Community:     "public",
 				Version:       gosnmp.Version3,
@@ -73,14 +72,14 @@ func (s *SnmpAPP) SNMPClient(version string, config *conf.FlowModel) *gosnmp.GoS
 		}
 
 	default:
-		utils.Check.CheckExit("snmp version is not found")
+		logger.Fatalln("snmp version is not found")
 		return nil
 	}
 
 }
 
 // SNMPGetOID  SNMP执行程序
-func (s *SnmpAPP) SNMPGetOID(client *gosnmp.GoSNMP) (*SnmpAPP, error) {
+func (s *SnmpStruct) SNMPGetOID(client *gosnmp.GoSNMP) (*SnmpStruct, error) {
 	err := client.Connect()
 	defer s.Close(client)
 	if err != nil {
@@ -98,7 +97,7 @@ func (s *SnmpAPP) SNMPGetOID(client *gosnmp.GoSNMP) (*SnmpAPP, error) {
 	s.Result = string(result.Variables[0].Value.([]byte))
 	return s, nil
 }
-func (s *SnmpAPP) RUN(version string, client *gosnmp.GoSNMP) {
+func (s *SnmpStruct) RUN(version string, client *gosnmp.GoSNMP) {
 	if client != nil {
 		// 执行方法
 		snmp, err := s.SNMPGetOID(client)
@@ -111,7 +110,7 @@ func (s *SnmpAPP) RUN(version string, client *gosnmp.GoSNMP) {
 }
 
 // Close SNMP关闭连接
-func (s *SnmpAPP) Close(client *gosnmp.GoSNMP) {
+func (s *SnmpStruct) Close(client *gosnmp.GoSNMP) {
 	err := client.Conn.Close()
 	if err != nil {
 		return

@@ -1,188 +1,69 @@
 package utils
 
 import (
-	"PoisonFlow/src/conf"
-	"errors"
-	logger "github.com/sirupsen/logrus"
 	"net"
-	"os"
+	"poison/src/model"
 )
 
-type CheckAPP struct{}
+import "errors"
 
 var (
-	ErrorSendMode   = errors.New("please check format of send mode: e.g. TCP,UDP,ICMP")
-	ErrorAUTOMode   = errors.New("please check format of send mode: e.g. TCP,UDP,BLACK,ICS")
-	ErrorServerMode = errors.New("please check format of Server mode: e.g. TCP, UDP")
-	ErrorDDOSMode   = errors.New("Please check format of Server mode: e.g. TCP, UDP,ICMP, WinNuke, Smurf ")
-	ErrorPort       = errors.New("Please check format of port : e.g. 1-65535 ")
-	ErrorHost       = errors.New("please check format of host: e.g. 1.2.3.4")
-	ErrorPath       = errors.New("Fatal error: lstat : no such file or directory ")
+	ERRORPORT  = errors.New("Please check format of port: e.g. 1-65535 ")
+	ERRORHOST  = errors.New("please check format of host: e.g. 192.168.1.1")
+	ERRORPATH  = errors.New("please check format of file: no such file or directory")
+	ERRORDEPTH = errors.New("please check format of depth: depth <= 0")
 )
 
-func (c *CheckAPP) CheckHost(host string) error {
-	ip := net.ParseIP(host)
-	if ip != nil || ip.To4() != nil {
+type Check struct {
+	Config *model.InterfaceModel
+}
+
+func (c Check) host() error {
+	dsthost := net.ParseIP(c.Config.DstHost)
+	srchost := net.ParseIP(c.Config.DstHost)
+	if dsthost != nil || dsthost.To4() != nil || srchost != nil || srchost.To4() != nil {
 		return nil
 	} else {
-		return ErrorHost
+		return ERRORHOST
 	}
 }
-func (c *CheckAPP) CheckDepth(depth int) error {
+
+func (c Check) port() error {
+	if c.Config.DstPort >= 1 && c.Config.DstPort <= 65535 {
+		if c.Config.SrcPort >= 1 && c.Config.SrcPort <= 65535 || c.Config.SrcPort == 0 {
+			return nil
+		}
+	}
+	return ERRORPORT
+}
+
+func (c Check) depth() error {
+	if c.Config.Depth < 0 {
+		return ERRORDEPTH
+	}
 	return nil
 
 }
-func (c *CheckAPP) CheckSendMode(mode string) error {
-	if mode == "TCP" || mode == "UDP" || mode == "ICMP" {
-		return nil
-	} else {
-		return ErrorSendMode
-	}
-}
-func (c *CheckAPP) CheckPort(port int) error {
-	if port >= 1 && port <= 65535 {
-		return nil
-	} else {
-		return ErrorPort
-	}
-}
-func (c *CheckAPP) CheckPath(path string) error {
-	if path == "" {
-		return ErrorPath
-	}
-	if len(FindAllFiles(path)) == 0 {
-		return ErrorPath
+
+func (c Check) filepath() error {
+	if len(FindAllFiles(c.Config.FilePath)) == 0 {
+		return ERRORPATH
 	}
 	return nil
 }
-func (c *CheckAPP) CheckAutoMode(mode string) error {
-	if mode == "TCP" || mode == "UDP" || mode == "ICMP" || mode == "ICS" {
-		return nil
-	} else {
-		return ErrorAUTOMode
-	}
-}
-func (c *CheckAPP) CheckServerMode(mode string) error {
-	if mode == "TCP" || mode == "UDP" {
-		return nil
-	} else {
-		return ErrorServerMode
-	}
-}
 
-func (c *CheckAPP) CheckDDosMode(mode string) error {
-	if mode == "TCP" || mode == "UDP" || mode == "ICMP" || mode == "WinNuke" || mode == "Smurf" {
-		return nil
-	} else {
-		return ErrorDDOSMode
+func CheckFlag(config *model.InterfaceModel) error {
+	check := &Check{
+		Config: config,
 	}
-}
-
-func (c *CheckAPP) CheckSend(config *conf.FlowModel) error {
-	err := c.CheckSendMode(config.Mode)
-	if err != nil {
+	if err := check.port(); err != nil {
 		return err
 	}
-	err = c.CheckHost(config.Host)
-	if err != nil {
+	if err := check.host(); err != nil {
 		return err
 	}
-	err = c.CheckPort(config.Port)
-	if err != nil {
-		return err
-	}
-	err = c.CheckDepth(config.Depth)
-	if err != nil {
+	if err := check.depth(); err != nil {
 		return err
 	}
 	return nil
 }
-func (c *CheckAPP) CheckDDos(config *conf.FlowModel) error {
-	err := c.CheckDDosMode(config.Mode)
-	if err != nil {
-		return err
-	}
-	err = c.CheckHost(config.Host)
-	if err != nil {
-		return err
-	}
-	err = c.CheckPort(config.Port)
-	if err != nil {
-		return err
-	} else {
-		return nil
-	}
-}
-
-func (c *CheckAPP) CheckReplay(config *conf.ReplayModel) error {
-	err := c.CheckDepth(config.Depth)
-	if err != nil {
-		return err
-	}
-	err = c.CheckPath(config.FilePath)
-	if err != nil {
-		return err
-	} else {
-		return nil
-	}
-}
-func (c *CheckAPP) CheckAuto(config *conf.FlowModel) error {
-	err := c.CheckHost(config.Host)
-	if err != nil {
-		return err
-	}
-	err = c.CheckDepth(config.Depth)
-	if err != nil {
-		return err
-	} else {
-		return nil
-	}
-}
-
-func (c *CheckAPP) CheckSnmp(config *conf.FlowModel) error {
-	err := c.CheckHost(config.Host)
-	if err != nil {
-		return err
-	} else {
-		return nil
-	}
-}
-
-func (c *CheckAPP) CheckServer(config *conf.FlowModel) error {
-	err := c.CheckServerMode(config.Mode)
-	if err != nil {
-		return err
-	}
-	err = c.CheckHost(config.Host)
-	if err != nil {
-		return err
-	} else {
-		return nil
-	}
-}
-
-func (c *CheckAPP) CheckExit(err string) {
-	logger.Errorf("Fatal error: %s\n ", err)
-}
-func (c *CheckAPP) CheckDebug(debug string) {
-	logger.Errorf("debug:  %s\n ", debug)
-}
-func (c *CheckAPP) CheckError(err error) {
-	if err != nil {
-		logger.Errorf("Fatal error: %s ", err)
-		os.Exit(0)
-	}
-}
-func (c *CheckAPP) CheckTimeout(err error) string {
-	logger.Fatalln(os.Stderr, "Fatal error: %s ", err)
-	return ""
-}
-func (c *CheckAPP) CheckDepthSum(CounterDepth, depth, CounterPacket int) bool {
-	if CounterDepth == depth {
-		logger.Printf("stopped sending a total of %d packets", CounterPacket)
-		return false
-	}
-	return true
-}
-
-var Check CheckAPP

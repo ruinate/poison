@@ -6,8 +6,6 @@
 package service
 
 import (
-	"PoisonFlow/src/conf"
-	"PoisonFlow/src/utils"
 	"context"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
@@ -16,20 +14,22 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"poison/src/model"
+	"poison/src/service/setting"
+	"poison/src/utils"
 	"runtime"
 	"syscall"
 	"time"
 )
 
-type ReplayInterFace interface {
-	Execute(config *conf.ReplayModel)
+type ReplayStruct struct {
 }
 
-type Replay struct {
-}
-
-func (r *Replay) Execute(config *conf.ReplayModel) {
-	signal.Notify(Signal, syscall.SIGINT, syscall.SIGTERM)
+func (r *ReplayStruct) Execute(config *model.InterfaceModel) {
+	signal.Notify(setting.Signal, syscall.SIGINT, syscall.SIGTERM)
+	if len(utils.FindAllFiles(config.FilePath)) == 0 {
+		logger.Fatalln("please check format of file: no such file or directory")
+	}
 	go r.ReplaySpeed()
 	if config.Speed == 0 {
 		numCPU := runtime.NumCPU()
@@ -41,18 +41,18 @@ func (r *Replay) Execute(config *conf.ReplayModel) {
 	for {
 		select {
 		// 捕获ctrl + c
-		case _ = <-Signal:
-			r.PcapResults(TotalPacket, TotalBytes)
+		case _ = <-setting.Signal:
+			r.PcapResults(setting.TotalPacket, setting.TotalBytes)
 		default:
 			err := r.SendPacket(config.FilePath, config.InterFace, config.Speed, config.Depth)
 			if err != nil {
-				utils.Check.CheckError(err)
+				logger.Fatalln(err)
 			}
 		}
 
 	}
 }
-func (r *Replay) SendPacket(path, inter string, speed, depth int) error {
+func (r *ReplayStruct) SendPacket(path, inter string, speed, depth int) error {
 	files := utils.FindAllFiles(path)
 	limiter := rate.NewLimiter(rate.Limit(speed), 10000)
 	for _, file := range files {
@@ -77,11 +77,11 @@ func (r *Replay) SendPacket(path, inter string, speed, depth int) error {
 		for packet := range packetSource.Packets() {
 			select {
 			// 捕获ctrl + c
-			case _ = <-Signal:
-				r.PcapResults(TotalPacket, TotalBytes)
+			case _ = <-setting.Signal:
+				r.PcapResults(setting.TotalPacket, setting.TotalBytes)
 			default:
-				TemporaryPacket += 1
-				TotalBytes += int64(len(packet.Data()))
+				setting.TemporaryPacket += 1
+				setting.TotalBytes += int64(len(packet.Data()))
 				if err := limiter.Wait(context.Background()); err != nil {
 					// 将数据包发送到本地网卡
 					if err := handle.WritePacketData(packet.Data()); err != nil {
@@ -97,17 +97,16 @@ func (r *Replay) SendPacket(path, inter string, speed, depth int) error {
 		pcapFile.Close()
 		handle.Close()
 	}
-	TotalPacket += TemporaryPacket
-	TotalDepth++
-	if depth == TotalDepth {
-		r.PcapResults(TotalPacket, TotalBytes)
+	setting.TotalPacket += setting.TemporaryPacket
+	setting.TotalDepth++
+	if depth == setting.TotalDepth {
+		r.PcapResults(setting.TotalPacket, setting.TotalBytes)
 	}
 	return nil
 }
 
-func (r *Replay) PcapResults(packet int, bytes int64) {
-	elapsed := time.Now().Sub(
-		StartTime)
+func (r *ReplayStruct) PcapResults(packet int, bytes int64) {
+	elapsed := time.Now().Sub(setting.StartTime)
 	logger.Printf("stopped sending a total of %d packet", packet)
 	logger.Printf("Total bytes: %d\n", bytes)
 	logger.Printf("Elapsed time: %v\n", elapsed)
@@ -116,27 +115,27 @@ func (r *Replay) PcapResults(packet int, bytes int64) {
 }
 
 // ReplaySpeed 专用
-func (r *Replay) ReplaySpeed() {
+func (r *ReplayStruct) ReplaySpeed() {
 	// 3秒中
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 	// 协程输出发送pps
 	for range ticker.C {
-		logger.Infof("Sended packet : %d  pps: %d \n", TemporaryPacket, TemporaryPacket/3)
-		TemporaryPacket = 0
+		logger.Infof("Sended packet : %d  pps: %d \n", setting.TemporaryPacket, setting.TemporaryPacket/3)
+		setting.TemporaryPacket = 0
 	}
 }
 
-func (r *Replay) R(config *conf.ReplayModel) {
+func (r *ReplayStruct) R(config *model.InterfaceModel) {
 	for {
 		select {
 		// 捕获ctrl + c
-		case _ = <-Signal:
-			r.PcapResults(TotalPacket, TotalBytes)
+		case _ = <-setting.Signal:
+			r.PcapResults(setting.TotalPacket, setting.TotalBytes)
 		default:
 			err := r.SendPacket(config.FilePath, config.InterFace, config.Speed, config.Depth)
 			if err != nil {
-				utils.Check.CheckError(err)
+				logger.Fatalln(err)
 			}
 		}
 

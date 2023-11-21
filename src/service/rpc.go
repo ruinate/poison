@@ -6,45 +6,38 @@
 package service
 
 import (
-	"PoisonFlow/src/conf"
-	"PoisonFlow/src/utils"
+	logger "github.com/sirupsen/logrus"
 	"net"
 	"net/rpc"
 	"net/rpc/jsonrpc"
+	"poison/src/model"
+	"poison/src/utils"
 )
 
-type RPCModel struct {
-	stopChan chan bool
+type RPC struct {
 }
 
-func (r *RPCModel) Execute() error {
+func (r *RPC) Execute(config *model.InterfaceModel) {
 	listener, err := net.Listen("tcp", ":1234")
 	if err != nil {
-		return err
+		logger.Fatalln(err)
 	}
-	_ = rpc.RegisterName("Flow", new(RPCModel))
+	_ = rpc.RegisterName("Flow", new(RPC))
 	defer listener.Close()
 	for {
 		conn, _ := listener.Accept()
 		go rpc.ServeCodec(jsonrpc.NewServerCodec(conn)) // 支持高并发
 	}
 }
-func (r *RPCModel) Send(config *conf.FlowModel) error {
-	err := utils.Check.CheckSend(config)
-	if err != nil {
-		return err
-	}
-	p, err := client.Execute(config)
-	utils.LogDebug(p, err)
-	if err != nil {
+func (r *RPC) Send(config *model.InterfaceModel) error {
+	if err := utils.Client.Execute(config); err != nil {
 		return err
 	}
 	return nil
 }
-func (r *RPCModel) Start(config *conf.FlowModel, result *error) error {
+func (r *RPC) Start(config *model.InterfaceModel, result *error) error {
 	if config.APPMode == "Send" {
-		err := r.Send(config)
-		if err != nil {
+		if err := r.Send(config); err != nil {
 			*result = err
 			return err
 		}

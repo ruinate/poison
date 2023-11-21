@@ -1,4 +1,9 @@
-package strategy
+// Package cmd -----------------------------
+// @file      : com.go
+// @author    : fzf
+// @time      : 2023/11/20 下午1:03
+// -------------------------------------------
+package cmd
 
 import (
 	"github.com/spf13/cobra"

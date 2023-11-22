@@ -7,14 +7,19 @@ package utils
 
 import (
 	"encoding/hex"
+	"fmt"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
+	probing "github.com/prometheus-community/pro-bing"
 	logger "github.com/sirupsen/logrus"
 	"log"
 	"math/rand"
 	"net"
+	"os"
+	"os/signal"
 	"poison/src/model"
+	"poison/src/service/setting"
 	"strings"
 	"sync"
 	"time"
@@ -114,8 +119,10 @@ func (c ClientModel) init() {
 
 func (c ClientModel) TCP() error {
 	lAddr := &net.TCPAddr{IP: net.ParseIP(c.config.SrcHost), Port: c.config.TmpSrcPort}
-	rAddr := &net.TCPAddr{IP: net.ParseIP(c.config.DstHost), Port: c.config.DstPort}
-	client, err := net.DialTCP("tcp", lAddr, rAddr)
+	//rAddr := &net.TCPAddr{IP: net.ParseIP(c.config.DstHost), Port: c.config.DstPort}
+	d := net.Dialer{Timeout: time.Second * 1,
+		LocalAddr: lAddr}
+	client, err := d.Dial("tcp", fmt.Sprintf("%s:%d", c.config.DstHost, c.config.DstPort))
 	if err != nil {
 		return err
 	}
@@ -172,6 +179,43 @@ func (c ClientModel) MAC() error {
 	return nil
 }
 
+func (c ClientModel) ICMP() error {
+	if c.config.Depth == 0 {
+		logger.Fatalln("depth must be greater than 0")
+	}
+	pinger, err := probing.NewPinger(c.config.DstHost)
+	signal.Notify(setting.Signal, os.Interrupt)
+	go func() {
+		for _ = range setting.Signal {
+			pinger.Stop()
+		}
+	}()
+	pinger.OnRecv = func(pkt *probing.Packet) {
+		logger.Printf("time: %s------%d bytes from %s: icmp_seq=%d time=%v ttl=%v\n",
+			time.Now().Format("2006-01-02 15:04:05"), pkt.Nbytes, pkt.IPAddr, pkt.Seq, pkt.Rtt, pkt.TTL)
+	}
+	pinger.OnDuplicateRecv = func(pkt *probing.Packet) {
+		logger.Printf("time: %s------%d bytes from %s: icmp_seq=%d time=%v ttl=%v (DUP!)\n",
+			time.Now().Format("2006-01-02 15:04:05"), pkt.Nbytes, pkt.IPAddr, pkt.Seq, pkt.Rtt, pkt.TTL)
+	}
+	pinger.OnFinish = func(stats *probing.Statistics) {
+		logger.Printf("\n--- %s ping statistics ---\n", stats.Addr)
+		logger.Printf("%d packets transmitted, %d packets received, %d duplicates, %v%% packet loss\n",
+			stats.PacketsSent, stats.PacketsRecv, stats.PacketsRecvDuplicates, stats.PacketLoss)
+		logger.Printf("round-trip min/avg/max/stddev = %v/%v/%v/%v\n",
+			stats.MinRtt, stats.AvgRtt, stats.MaxRtt, stats.StdDevRtt)
+	}
+	pinger.Timeout = time.Second * time.Duration(c.config.Depth)
+	pinger.Size = 56
+	pinger.TTL = 128
+	logger.Printf("PING %s (%s):\n", pinger.Addr(), pinger.IPAddr())
+	err = pinger.Run()
+	if err != nil {
+		logger.Errorln(err)
+	}
+	return nil
+}
+
 func (c ClientModel) Execute(config *model.InterfaceModel) error {
 	c.config = config
 	c.init()
@@ -190,6 +234,8 @@ func (c ClientModel) Execute(config *model.InterfaceModel) error {
 			return nil
 		case model.PROTOBLACK:
 			return c.TCP()
+		case model.PROTOICMP:
+			return c.ICMP()
 		default:
 			logger.Errorln("模式输入错误")
 			return nil

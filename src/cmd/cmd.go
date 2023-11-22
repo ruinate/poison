@@ -125,7 +125,7 @@ var (
 			if err := utils.CheckFlag(&model.Config); err != nil {
 				logger.Fatalln(err)
 			}
-			logger.Println("Starting RpcServer...")
+			logger.Println("Starting RPC_SERVER...")
 			client := strategy.NewClient(&model.Config)
 			client.Execute(&model.Config)
 		},
@@ -243,7 +243,7 @@ func init() {
 	})
 	// ddos
 	err = DDOSCmd.RegisterFlagCompletionFunc(model.MODE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{"SYN", "UDP", "ICMP", "WinNuke", "Smurf", "Land", "TearDrop", "MAXICMP"}, cobra.ShellCompDirectiveDefault
+		return []string{"TCP", "UDP", "ICMP", "WinNuke", "Smurf", "Land", "TearDrop", "MAXICMP"}, cobra.ShellCompDirectiveDefault
 	})
 	err = DDOSCmd.RegisterFlagCompletionFunc(model.HOST, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{}, cobra.ShellCompDirectiveDefault

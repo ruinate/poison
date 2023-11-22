@@ -27,6 +27,7 @@ const (
 	PROTOUDP        = "UDP"
 	PROTOBLACK      = "BLACK"
 	PROTOICS        = "ICS"
+	PROTOICMP       = "ICMP"
 	ROUTE           = "ROUTE"
 	MAC             = "MAC"
 )

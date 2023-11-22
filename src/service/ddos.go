@@ -47,19 +47,6 @@ func (p *DDOSStruct) Execute(config *model.InterfaceModel) {
 	var shutdownSignals = []os.Signal{os.Interrupt, syscall.SIGTERM}
 
 	signal.Notify(c, shutdownSignals...)
-	go func() {
-		<-c
-		//logger.Errorln(1111111111)
-		//input, err := bufio.NewReader(os.Stdin).ReadString('\n')
-		//logger.Infoln(3333)
-		//if err != nil {
-		//	fmt.Println("There were errors reading, exiting program.")
-		//	return
-		//}
-		//fmt.Printf("您输入的是:%s", input)
-		//fmt.Sscan(input, &config.Mode)
-		//logger.Infoln(config.Mode)
-	}()
 	err := cmd.Run()
 	if err != nil {
 		logger.Infoln(err)

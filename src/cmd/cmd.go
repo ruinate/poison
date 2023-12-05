@@ -224,6 +224,10 @@ func init() {
 		return inter, cobra.ShellCompDirectiveDefault
 	})
 
+	err = SendCmd.RegisterFlagCompletionFunc(model.ROUTE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return inter, cobra.ShellCompDirectiveDefault
+	})
+
 	// auto
 	err = AutoCmd.RegisterFlagCompletionFunc(model.MODE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"TCP", "UDP", "ICS", "BLACK"}, cobra.ShellCompDirectiveDefault
@@ -235,15 +239,11 @@ func init() {
 		return []string{}, cobra.ShellCompDirectiveDefault
 	})
 	err = AutoCmd.RegisterFlagCompletionFunc(model.ICSMODE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{"Modbus", "BACnet", "DNP3", "FINS", "OpcUA", "OpcDA",
-			"OpcAE", "S7COMM", "ADS/AMS", "Umas", "ENIP",
-			"Hart/IP", "S7COMM_PLUS", "IEC104", "CIP", "GE_SRTP", "EGD",
-			"H1", "FF", "MELSOFT", "Ovation",
-			"CoAP", "MQTT", "DLT645", "MELSOFT(1E)"}, cobra.ShellCompDirectiveDefault
+		return model.PROTOICSMODE, cobra.ShellCompDirectiveDefault
 	})
 	// ddos
 	err = DDOSCmd.RegisterFlagCompletionFunc(model.MODE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{"TCP", "UDP", "ICMP", "WinNuke", "Smurf", "Land", "TearDrop", "MAXICMP"}, cobra.ShellCompDirectiveDefault
+		return model.PROTOMODE, cobra.ShellCompDirectiveDefault
 	})
 	err = DDOSCmd.RegisterFlagCompletionFunc(model.HOST, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{}, cobra.ShellCompDirectiveDefault

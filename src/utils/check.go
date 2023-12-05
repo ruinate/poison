@@ -12,6 +12,7 @@ var (
 	ERRORHOST  = errors.New("please check format of host: e.g. 192.168.1.1")
 	ERRORPATH  = errors.New("please check format of file: no such file or directory")
 	ERRORDEPTH = errors.New("please check format of depth: depth <= 0")
+	ERRORMODE  = errors.New("please check format of mode: \"TCP\", \"UDP\", \"ICS\", \"ICMP\", \"WinNuke\", \"Smurf\", \"Land\", \"TearDrop\", \"MAXICMP\"")
 )
 
 type Check struct {
@@ -52,6 +53,15 @@ func (c Check) filepath() error {
 	return nil
 }
 
+func (c Check) mode() error {
+	for _, mode := range model.PROTOMODE {
+		if mode == c.Config.Mode {
+			return nil
+		}
+	}
+	return ERRORMODE
+}
+
 func CheckFlag(config *model.InterfaceModel) error {
 	check := &Check{
 		Config: config,
@@ -63,6 +73,9 @@ func CheckFlag(config *model.InterfaceModel) error {
 		return err
 	}
 	if err := check.depth(); err != nil {
+		return err
+	}
+	if err := check.mode(); err != nil {
 		return err
 	}
 	return nil

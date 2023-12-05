@@ -36,7 +36,7 @@ type ClientView struct {
 }
 
 // Receive 读取服务端返回数据
-func (c ClientView) Receive(conn net.Conn) (string, error) {
+func (c *ClientView) Receive(conn net.Conn) (string, error) {
 
 	for {
 		//返回数据，
@@ -55,7 +55,7 @@ func (c ClientView) Receive(conn net.Conn) (string, error) {
 	}
 }
 
-func (c ClientView) ProcessResult(message string, err error) {
+func (c *ClientView) ProcessResult(message string, err error) {
 	switch c.config.Mode {
 	case model.PROTOTCP, model.PROTOBLACK:
 		if err != nil {
@@ -74,7 +74,7 @@ func (c ClientView) ProcessResult(message string, err error) {
 	}
 }
 
-func (c ClientView) Close(client net.Conn) {
+func (c *ClientView) Close(client net.Conn) {
 	if client != nil {
 		if err := client.Close(); err != nil {
 
@@ -84,7 +84,7 @@ func (c ClientView) Close(client net.Conn) {
 }
 
 // SwitchHex  转换为16进制
-func (c ClientView) SwitchHex(payload string) []byte {
+func (c *ClientView) SwitchHex(payload string) []byte {
 	var HexData []byte
 	PayloadSplit := strings.Split(payload, "|")
 	for _, split := range PayloadSplit {
@@ -103,10 +103,11 @@ type ClientModel struct {
 	ClientView
 }
 
-func (c ClientModel) init() {
+func (c *ClientModel) init() {
 	c.config.HexPayload = c.SwitchHex(c.config.Payload)
 	if c.config.DstPort == 0 {
 		c.config.DstPort = rand.Intn(65535-10254) + 1024
+		c.MAC()
 	}
 
 	if c.config.SrcPort == 0 {
@@ -115,9 +116,18 @@ func (c ClientModel) init() {
 	if c.config.SrcHost == "127.0.0.1" {
 		c.config.SrcHost = "0.0.0.0"
 	}
+	// 如果是目的端口50012的话，确认该次发包为OPC协议
+	if c.config.DstPort == 49168 {
+		client, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", c.config.DstHost, 135), time.Millisecond*300)
+		// 连接出错则打印错误消息并退出程序
+		if err != nil {
+			logger.Println(err)
+		}
+		_, err = client.Write(c.SwitchHex(DRPRPCPayload))
+	}
 }
 
-func (c ClientModel) TCP() error {
+func (c *ClientModel) TCP() error {
 	lAddr := &net.TCPAddr{IP: net.ParseIP(c.config.SrcHost), Port: c.config.TmpSrcPort}
 	//rAddr := &net.TCPAddr{IP: net.ParseIP(c.config.DstHost), Port: c.config.DstPort}
 	d := net.Dialer{Timeout: time.Second * 1,
@@ -132,21 +142,21 @@ func (c ClientModel) TCP() error {
 	return nil
 }
 
-func (c ClientModel) UDP() error {
+func (c *ClientModel) UDP() error {
 	lAddr := &net.UDPAddr{IP: net.ParseIP(c.config.SrcHost), Port: c.config.TmpSrcPort}
 	rAddr := &net.UDPAddr{IP: net.ParseIP(c.config.DstHost), Port: c.config.DstPort}
 	client, err := net.DialUDP("udp", lAddr, rAddr)
-	defer c.Close(client)
 	if err != nil {
 		return nil
 	}
+	//defer c.Close(client)
 	_, err = client.Write(c.config.HexPayload)
 	c.ProcessResult(c.Receive(client))
 
 	return nil
 }
 
-func (c ClientModel) MAC() error {
+func (c *ClientModel) MAC() error {
 	// 获取设备的句柄
 	handle, err := pcap.OpenLive(c.config.InterFace, 1600, true, pcap.BlockForever)
 	if err != nil {
@@ -179,7 +189,7 @@ func (c ClientModel) MAC() error {
 	return nil
 }
 
-func (c ClientModel) ICMP() error {
+func (c *ClientModel) ICMP() error {
 	if c.config.Depth == 0 {
 		logger.Fatalln("depth must be greater than 0")
 	}
@@ -216,7 +226,7 @@ func (c ClientModel) ICMP() error {
 	return nil
 }
 
-func (c ClientModel) Execute(config *model.InterfaceModel) error {
+func (c *ClientModel) Execute(config *model.InterfaceModel) error {
 	c.config = config
 	c.init()
 	switch c.config.SendMode {
@@ -228,10 +238,9 @@ func (c ClientModel) Execute(config *model.InterfaceModel) error {
 			return c.UDP()
 		case model.PROTOICS:
 			go func() {
-				c.TCP()
 				c.UDP()
 			}()
-			return nil
+			return c.TCP()
 		case model.PROTOBLACK:
 			return c.TCP()
 		case model.PROTOICMP:

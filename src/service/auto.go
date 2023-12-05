@@ -19,26 +19,27 @@ type AutoStruct struct {
 
 func (f *AutoStruct) Execute(config *model.InterfaceModel) {
 	payload := utils.Output.Execute(config.Mode, config.ICSMode)
-	for {
-		for _, P := range payload {
-			time.Sleep(time.Millisecond * 300)
-			select {
-			case _ = <-setting.Signal:
-				logger.Printf("stopped sending a total of %d packets", setting.TotalPacket)
-				os.Exit(0)
-			case <-time.After(0 * time.Millisecond):
-				setting.TotalPacket += 1
-				config.DstPort = P[0].(int)
-				config.Payload = P[1].(string)
-				config.SrcPort = 0
-				if err := utils.Client.Execute(config); err != nil {
-					logger.Errorln(err)
+	if payload != nil {
+		for {
+			for _, P := range payload {
+				time.Sleep(time.Millisecond * 300)
+				select {
+				case _ = <-setting.Signal:
+					logger.Printf("stopped sending a total of %d packets", setting.TotalPacket)
+					os.Exit(0)
+				case <-time.After(0 * time.Millisecond):
+					setting.TotalPacket += 1
+					config.DstPort = P[0].(int)
+					config.Payload = P[1].(string)
+					config.SrcPort = 0
+					if err := utils.Client.Execute(config); err != nil {
+						logger.Errorln(err)
+					}
 				}
 			}
-		}
-		if setting.TotalDepth++; setting.TotalDepth == config.Depth {
-			logger.Fatalln("stopped sending a total of %d packets", setting.TotalPacket)
+			if setting.TotalDepth++; setting.TotalDepth == config.Depth {
+				logger.Fatalln("stopped sending a total of %d packets", setting.TotalPacket)
+			}
 		}
 	}
-
 }

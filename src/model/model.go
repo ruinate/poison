@@ -6,30 +6,30 @@
 package model
 
 const (
-	AUTO            = "auto"
-	SEND            = "send"
-	DDOS            = "ddos"
-	PING            = "ping"
-	REPLAY          = "replay"
-	RPC             = "rpc"
-	SERVER          = "server"
-	SNMP            = "snmp"
-	REPLAYINTERFACE = "interface"
-	REPLAYFILE      = "file"
-	MODE            = "mode"
-	HOST            = "host"
-	PAYLOAD         = "payload"
-	PORT            = "port"
-	DEPTH           = "depth"
-	SPEED           = "speed"
-	ICSMODE         = "icsmode"
-	PROTOTCP        = "TCP"
-	PROTOUDP        = "UDP"
-	PROTOBLACK      = "BLACK"
-	PROTOICS        = "ICS"
-	PROTOICMP       = "ICMP"
-	ROUTE           = "ROUTE"
-	MAC             = "MAC"
+	AUTO            string = "auto"
+	SEND            string = "send"
+	DDOS            string = "ddos"
+	PING            string = "ping"
+	REPLAY          string = "replay"
+	RPC             string = "rpc"
+	SERVER          string = "server"
+	SNMP            string = "snmp"
+	REPLAYINTERFACE string = "interface"
+	REPLAYFILE      string = "file"
+	MODE            string = "mode"
+	HOST            string = "host"
+	PAYLOAD         string = "payload"
+	PORT            string = "port"
+	DEPTH           string = "depth"
+	SPEED           string = "speed"
+	ICSMODE         string = "icsmode"
+	PROTOTCP        string = "TCP"
+	PROTOUDP        string = "UDP"
+	PROTOBLACK      string = "BLACK"
+	PROTOICS        string = "ICS"
+	PROTOICMP       string = "ICMP"
+	ROUTE           string = "ROUTE"
+	MAC             string = "MAC"
 )
 
 type Stream struct {
@@ -79,4 +79,12 @@ type TestModel struct {
 	Test string
 }
 
-var Config InterfaceModel
+var (
+	Config       InterfaceModel
+	PROTOMODE    = []string{"TCP", "UDP", "ICS", "ICMP", "WinNuke", "Smurf", "Land", "TearDrop", "MAXICMP"}
+	PROTOICSMODE = []string{"Modbus", "BACnet", "DNP3", "FINS", "OpcUA", "OpcDA",
+		"OpcAE", "S7COMM", "ADS/AMS", "Umas", "ENIP",
+		"Hart/IP", "S7COMM_PLUS", "IEC104", "CIP", "GE_SRTP", "EGD",
+		"H1", "FF", "MELSOFT", "Ovation",
+		"CoAP", "MQTT", "DLT645", "MELSOFT(1E)", "DeltaV", "Foxboro", "EtherCAT"}
+)

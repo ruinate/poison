@@ -1,7 +1,7 @@
 # PoisonFlow
 
 #### 介绍
-    flow
+    poison
 
 
 #### 软件架构
@@ -9,6 +9,7 @@
     go net
 #### 安装教程
     insatll-
+```shell
     make 
     
     命令行 tab联想
@@ -16,6 +17,8 @@
     poison completion bash > poison_completion
     mv poison_completion /etc/bash_completion.d/
     source /etc/bash_completion.d/poison_completion
+```
+
 
     
 

@@ -36,12 +36,11 @@ func (s *SnmpCmd) InitCmd() *cobra.Command {
 			s.Execute(&model.Config)
 		},
 	}
-
 	s.cmd.Flags().StringVarP(&model.Config.DstHost, "host", "H", "127.0.0.1", "Host载体")
 	return s.cmd
 }
 
-func (c SnmpCmd) Execute(config *model.Stream) {
+func (c *SnmpCmd) Execute(config *model.Stream) {
 	client := snmp.NewSnmpClient(config.DstHost)
 	for _, version := range SNMPVersion {
 		// 获取客户端

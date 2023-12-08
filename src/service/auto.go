@@ -83,7 +83,8 @@ func (a *AutoCmd) Execute(config *model.Stream) {
 				}
 			}
 			if settings.TotalDepth++; settings.TotalDepth == config.Depth {
-				logger.Fatalln("stopped sending a total of %d packets", settings.TotalPacket)
+				logger.Debugf("stopped sending a total of %d packets", settings.TotalPacket)
+				return
 			}
 		}
 	}

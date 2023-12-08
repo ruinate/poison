@@ -41,6 +41,8 @@ const (
 	ConnectionUSEERROR = "address already in use"
 )
 
+const VERSION = "0.1.0"
+
 type Stream struct {
 	SrcMAC  string
 	DstMAC  string

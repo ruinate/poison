@@ -80,7 +80,8 @@ func (s *SendCmd) Execute(config *model.Stream) {
 				logger.Errorln(err)
 			}
 			if settings.TotalDepth == config.Depth {
-				logger.Fatalln("stopped sending a total of %d packets", settings.TotalPacket)
+				logger.Debugf("stopped sending a total of %d packets", settings.TotalPacket)
+				return
 			}
 		}
 	}

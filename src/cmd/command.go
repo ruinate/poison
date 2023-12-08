@@ -7,6 +7,7 @@
 package cmd
 
 import (
+	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
 	"poison/src/model"
@@ -21,6 +22,7 @@ var (
 		Long:      ``,
 		ValidArgs: []string{model.SEND, model.ETHER, model.AUTO, model.SNMP, model.SERVER, model.REPLAY, model.DDOS, model.PING, model.RPC},
 		Args:      cobra.OnlyValidArgs,
+		Version:   model.VERSION,
 	}
 	auto   service.AutoCmd
 	send   service.SendCmd
@@ -34,18 +36,17 @@ var (
 )
 
 func init() {
-
+	logger.SetLevel(logger.DebugLevel)
 	if len(os.Args) >= 2 {
 		model.Config.APPMode = os.Args[1]
 	}
 	//fmt.Println(
 	//	`
-	//			 _
-	//_ __   ___ (_)  ___  ___  _ __
-	//| '_ \ / _ \| | / __|/ _ \| '_ \
-	//| |_) | (_) | | \__ \ (_) | | | |
-	//| .__/ \___/|_| |___/\___/|_| |_|
-	//|_|
+	//	_ __   ___  (_)  ___  ___  _ __
+	//	| '_ \ / _ \| | / __|/ _ \| '_ \
+	//	| |_) | (_) | | \__ \ (_) | | | |
+	//	| .__/ \___/|_| |___/\___/|_| |_|
+	//	|_|
 	//`,
 	//)
 	PoisonCmd.AddCommand(auto.InitCmd(), snmp.InitCmd(), send.InitCmd(), ddos.InitCmd(), ping.InitCmd(),

@@ -7,7 +7,6 @@
 package utils
 
 import (
-	"errors"
 	logger "github.com/sirupsen/logrus"
 	"math/rand"
 	"net"
@@ -114,23 +113,33 @@ func (c ClientModel) Execute(config *model.Stream) error {
 		return nil
 	}
 
-	if str, ok := result.(string); ok {
-		if strings.Contains(str, model.ConnectionUSEERROR) {
-			return c.Execute(config)
+	// 判断返回类型
+	switch result.(type) {
+	// 源端口被占用
+	case string:
+		if str, ok := result.(string); ok {
+			if strings.Contains(str, model.ConnectionUSEERROR) {
+				return c.Execute(config)
+			}
 		}
+	// 服务器端口未监听
+	case *net.OpError:
+		if opErr, ok := result.(*net.OpError); ok && opErr.Op == "dial" {
+			if syscallErr, ok := opErr.Err.(*os.SyscallError); ok {
+				if syscallErr.Err.Error() == "connection refused" {
+					logger.Errorf("端口-%d: 连接被拒绝,远程主机可能没有在监听指定的端口", config.DstPort)
+					return nil
+				}
+			}
+		}
+	// 返回数据为空
+	case nil:
+		logger.Infof("%s connected to the %s  port: %d payload: %#v", config.Mode, config.DstHost, config.DstPort, config.Payload)
+	// 默认打印
+	default:
+		logger.Infof("%s connected to the %s  port: %d payload: %#v", config.Mode, config.DstHost, config.DstPort, result)
+
 	}
 
-	if opError, ok := result.(net.OpError); ok {
-		var syscallERR *os.SyscallError
-		if errors.As(opError.Err, &syscallERR) {
-			return c.Execute(config)
-		} else {
-			logger.Infof("%s connected to the %s  port: %d payload: %#v", config.Mode, config.DstHost, config.DstPort, opError.Error())
-		}
-		return nil
-
-	}
-
-	logger.Infof("%s connected to the %s  port: %d payload: %#v", config.Mode, config.DstHost, config.DstPort, result)
 	return nil
 }

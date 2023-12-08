@@ -29,13 +29,14 @@ type DDOSCmd struct {
 func (d *DDOSCmd) InitCmd() *cobra.Command {
 	d.cmd = &cobra.Command{
 		Use:       model.DDOS,
-		Short:     "安全防护",
+		Short:     "ddos工具",
 		Long:      ``,
 		ValidArgs: []string{"-m", "-H", "-P"},
 		Args:      cobra.OnlyValidArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := utils.CheckFlag(&model.Config); err != nil {
-				logger.Fatalln(err)
+				logger.Debugln(err)
+				return
 			}
 			logger.Printf("Starting  Host:%s  Mode:%s ...\n", model.Config.DstHost, model.Config.Mode)
 			d.Execute(&model.Config)

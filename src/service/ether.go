@@ -21,7 +21,7 @@ type EtherCmd struct {
 func (e *EtherCmd) InitCmd() *cobra.Command {
 	e.cmd = &cobra.Command{
 		Use:       model.ETHER,
-		Short:     "发送Ether 数据包",
+		Short:     "发送Ether数据包",
 		Long:      ``,
 		Args:      cobra.OnlyValidArgs,
 		ValidArgs: []string{"-I", "-S", "-D", "-p", "-d"},

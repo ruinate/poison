@@ -32,7 +32,8 @@ func (r *ReplayCmd) InitCmd() *cobra.Command {
 		ValidArgs: []string{"-i", "-f", "-s"},
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := utils.CheckFlag(&model.Config); err != nil {
-				logger.Fatalln(err)
+				logger.Debugln(err)
+				return
 			}
 			logger.Printf("Starting Interface :%s   path :%s...\n", model.Config.InterFace, model.Config.FilePath)
 			r.Execute(&model.Config)

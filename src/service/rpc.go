@@ -42,7 +42,8 @@ func (r *RpcCmd) InitCmd() *cobra.Command {
 func (r *RpcCmd) Execute() {
 	listener, err := net.Listen("tcp", ":1234")
 	if err != nil {
-		logger.Fatalln(err)
+		logger.Debugln(err)
+		return
 	}
 	_ = rpc.RegisterName("Flow", new(rpcapp.RPC))
 	defer listener.Close()

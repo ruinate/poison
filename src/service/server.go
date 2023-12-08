@@ -1,105 +1,62 @@
-// Package service  -----------------------------
+// Package service -----------------------------
 // @file      : server.go
 // @author    : fzf
-// @time      : 2023/5/9 上午10:20
+// @contact   : fzf54122@163.com
+// @time      : 2023/12/8 下午1:23
 // -------------------------------------------
 package service
 
 import (
 	logger "github.com/sirupsen/logrus"
-	"github.com/syossan27/tebata"
-	"net"
-	"os"
-	"os/signal"
+	"github.com/spf13/cobra"
+	"poison/src/core/server"
 	"poison/src/model"
-	"poison/src/service/setting"
+	"poison/src/utils"
 	"strconv"
-	"syscall"
-	"time"
 )
 
-type ServerStruct struct {
+type ServerCmd struct {
+	cmd *cobra.Command
 }
 
-var buf = make([]byte, 1024)
+func (s *ServerCmd) InitCmd() *cobra.Command {
+	s.cmd = &cobra.Command{
+		Use:       model.SERVER,
+		Short:     "服务端：监听端口默认全部",
+		Long:      ``,
+		Args:      cobra.OnlyValidArgs,
+		ValidArgs: []string{"-m", "-H"},
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := utils.CheckFlag(&model.Config); err != nil {
+				logger.Fatalln(err)
+			}
+			logger.Infof("Starting server Host : %s  Mode : %s...\n", model.Config.DstHost, model.Config.Mode)
+			s.Execute(&model.Config)
+		},
+	}
+	s.cmd.Flags().StringVarP(&model.Config.DstHost, "host", "H", "0.0.0.0", "Host载体")
+	s.cmd.Flags().StringVarP(&model.Config.Mode, "mode", "m", "TCP", "模式载体")
+	s.cmd.Flags().IntVarP(&model.Config.StartPort, "srcport", "s", 1, "监听开始端口")
+	s.cmd.Flags().IntVarP(&model.Config.EndPort, "dstport", "e", 65535, "监听结束端口")
+	return s.cmd
+}
 
 // Execute 监听执行
-func (s *ServerStruct) Execute(config *model.InterfaceModel) {
-	t := tebata.New(syscall.SIGINT, syscall.SIGTERM)
+func (s *ServerCmd) Execute(config *model.Stream) {
 	for port := config.StartPort; port < config.EndPort; {
 		port++
-		go func(port string) {
-			if err := s.ExecuteListen(config.DstHost, port, config.Mode, t); err != nil {
-			}
-		}(strconv.Itoa(port))
-	}
-	if err := s.ExecuteListen(config.DstHost, strconv.Itoa(65535), config.Mode, t); err != nil {
-	}
-}
-
-// ExecuteListen  监听主程序
-func (s *ServerStruct) ExecuteListen(address, port, protocol string, t *tebata.Tebata) error {
-	signal.Notify(setting.Signal, syscall.SIGINT, syscall.SIGTERM)
-	if protocol == "TCP" {
-		conn, err := net.Listen("tcp", address+":"+port)
-		if err != nil {
-			return err
+		switch config.Mode {
+		case "TCP":
+			go server.ListenerTCP(config.DstHost, strconv.Itoa(port))
+		case "UDP":
+			go server.ListenerUDP(port)
 		}
-		_ = t.Reserve(conn.Close)
-
-		for {
-			select {
-			case <-time.After(0 * time.Millisecond):
-				// 监听端口
-				TCPServer, err := conn.Accept()
-				if err != nil {
-					break
-				}
-				results, _ := TCPServer.Read(buf)
-				_, _ = TCPServer.Write(buf[:results])
-				if port == "135" {
-					time.Sleep(time.Second * 5)
-				}
-				s.Close(TCPServer)
-				logger.Printf("%s -> %s", TCPServer.RemoteAddr(), TCPServer.LocalAddr())
-			case s := <-setting.Signal:
-				logger.Errorf("received signal %s, exiting", s.String())
-				os.Exit(0)
-			}
-
-		}
+	}
+	ERRORNUMBER := len(server.SERVERPORTERROR)
+	if ERRORNUMBER > 15 {
+		logger.Errorf("监听失败端口数量：%d个端口", ERRORNUMBER)
 	} else {
-		port, _ := strconv.Atoi(port)
-		UDPServer, err := net.ListenUDP("udp", &net.UDPAddr{
-			IP:   net.IPv4(0, 0, 0, 0),
-			Port: port,
-		})
-		if err != nil {
-			return err
-		}
-		for {
-			select {
-			case <-time.After(0 * time.Millisecond):
-				// 读取消息，UDP不是面向连接的因此不需要等待连接
-				length, udpAddr, err := UDPServer.ReadFromUDP(buf)
-				if err != nil {
-					break
-				}
-				_, err = UDPServer.WriteToUDP(buf[:length], udpAddr)
-				s.Close(UDPServer)
-				logger.Printf("%s -> %s", udpAddr, UDPServer.LocalAddr())
-			case s := <-setting.Signal:
-				logger.Errorf("received signal %s, exiting", s.String())
-				os.Exit(0)
-			}
-		}
+		logger.Errorf("监听失败端口：%s", server.SERVERPORTERROR)
 	}
-}
-
-// Close 服务端关闭连接
-func (s *ServerStruct) Close(client net.Conn) {
-	err := client.Close()
-	if err != nil {
-		return
-	}
+	select {}
 }

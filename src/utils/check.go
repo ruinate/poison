@@ -1,11 +1,16 @@
+// Package utils -----------------------------
+// @file      : check.go
+// @author    : fzf
+// @contact   : fzf54122@163.com
+// @time      : 2023/12/8 下午12:51
+// -------------------------------------------
 package utils
 
 import (
+	"errors"
 	"net"
 	"poison/src/model"
 )
-
-import "errors"
 
 var (
 	ERRORPORT  = errors.New("Please check format of port: e.g. 1-65535 ")
@@ -16,7 +21,7 @@ var (
 )
 
 type Check struct {
-	Config *model.InterfaceModel
+	Config *model.Stream
 }
 
 func (c Check) host() error {
@@ -46,12 +51,12 @@ func (c Check) depth() error {
 
 }
 
-func (c Check) filepath() error {
-	if len(FindAllFiles(c.Config.FilePath)) == 0 {
-		return ERRORPATH
-	}
-	return nil
-}
+//func (c Check) filepath() error {
+//	if len(FindAllFiles(c.Config.FilePath)) == 0 {
+//		return ERRORPATH
+//	}
+//	return nil
+//}
 
 func (c Check) mode() error {
 	for _, mode := range model.PROTOMODE {
@@ -62,7 +67,7 @@ func (c Check) mode() error {
 	return ERRORMODE
 }
 
-func CheckFlag(config *model.InterfaceModel) error {
+func CheckFlag(config *model.Stream) error {
 	check := &Check{
 		Config: config,
 	}

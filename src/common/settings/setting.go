@@ -3,7 +3,7 @@
 // @author    : fzf
 // @time      : 2023/11/20 上午10:50
 // -------------------------------------------
-package setting
+package settings
 
 import (
 	"os"

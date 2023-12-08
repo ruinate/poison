@@ -1,7 +1,8 @@
 // Package cmd -----------------------------
-// @file      : com.go
+// @file      : completion.go
 // @author    : fzf
-// @time      : 2023/11/20 下午1:03
+// @contact   : fzf54122@163.com
+// @time      : 2023/12/8 下午12:57
 // -------------------------------------------
 package cmd
 

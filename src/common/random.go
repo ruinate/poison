@@ -1,4 +1,10 @@
-package utils
+// Package common -----------------------------
+// @file      : random.go
+// @author    : fzf
+// @contact   : fzf54122@163.com
+// @time      : 2023/12/8 下午12:50
+// -------------------------------------------
+package common
 
 import (
 	"math/rand"

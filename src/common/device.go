@@ -1,9 +1,10 @@
-// Package utils -----------------------------
-// @file      : Inter.go
+// Package common -----------------------------
+// @file      : device.go
 // @author    : fzf
-// @time      : 2023/5/14 下午10:58
+// @contact   : fzf54122@163.com
+// @time      : 2023/12/8 下午12:51
 // -------------------------------------------
-package utils
+package common
 
 import (
 	"net"

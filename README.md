@@ -5,11 +5,70 @@
 
 
 #### 软件架构
-    软件架构说明
-    go net
+```text
+软件架构说明
+.
+├── Makefile
+├── README.md
+├── main.go
+├── src
+│   ├── model
+│   │   ├── core.go
+│   │   └── server.go
+│   ├── common
+│   │   ├── code.go
+│   │   ├── device.go
+│   │   ├── random.go
+│   │   ├── hping.go
+│   │   └── settings
+│   │       ├── hping
+│   │       └── setting.go
+│   ├── core
+│   │   ├── snmp
+│   │   │   └── snmp.go
+│   │   ├── rpc
+│   │   │   └── rpc.go
+│   │   ├── replay
+│   │   │   └── replay.go
+│   │   ├── conn
+│   │   │   ├── common.go
+│   │   │   ├── mac.go
+│   │   │   ├── model.go
+│   │   │   ├── udp.go
+│   │   │   ├── icmp.go
+│   │   │   └── tcp.go
+│   │   └── server
+│   │       └── server.go
+│   ├── service
+│   │   ├── ping.go
+│   │   ├── rpc.go
+│   │   ├── send.go
+│   │   ├── server.go
+│   │   ├── snmp.go
+│   │   ├── auto.go
+│   │   ├── ddos.go
+│   │   ├── ether.go
+│   │   └── replay.go
+│   ├── cmd
+│   │   ├── completion.go
+│   │   └── command.go
+│   ├── payload
+│   │   └── payload.go
+│   └── utils
+│       ├── search.go
+│       ├── check.go
+│       └── client.go
+├── go.mod
+├── go.sum
+├── doc
+│   ├── compre.md
+│   └── poison.conf
+└── poison
+```
 #### 安装教程
-    insatll-
+   
 ```shell
+insatll-
     make 
     
     命令行 tab联想
@@ -20,7 +79,7 @@
 ```
 
 
-    
+
 
 #### 使用说明
 

@@ -1,34 +1,79 @@
 // Package service -----------------------------
-// @file      : flow.go
+// @file      : auto.go
 // @author    : fzf
-// @time      : 2023/5/9 下午1:01
+// @contact   : fzf54122@163.com
+// @time      : 2023/12/8 下午1:02
 // -------------------------------------------
 package service
 
 import (
 	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"os"
+	"poison/src/common/settings"
 	"poison/src/model"
-	"poison/src/service/setting"
+	"poison/src/payload"
 	"poison/src/utils"
 	"time"
 )
 
-type AutoStruct struct {
+type AutoCmd struct {
+	cmd *cobra.Command
 }
 
-func (f *AutoStruct) Execute(config *model.InterfaceModel) {
-	payload := utils.Output.Execute(config.Mode, config.ICSMode)
-	if payload != nil {
+func (a *AutoCmd) InitCmd() *cobra.Command {
+	a.cmd = &cobra.Command{
+		Use:       model.AUTO,
+		Short:     "自动发送：TCP、UDP、BLACK、ICS",
+		Long:      ``,
+		Args:      cobra.OnlyValidArgs,
+		ValidArgs: []string{"-m", "-H", "-d"},
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := utils.CheckFlag(&model.Config); err != nil {
+				logger.Fatalln(err)
+			}
+			model.Config.SendMode = "ROUTE"
+			logger.Infof("Starting Auto Mode %s ...\n", model.Config.Mode)
+			a.Execute(&model.Config)
+		},
+	}
+	a.cmd.Flags().StringVarP(&model.Config.Mode, "mode", "m", "TCP", "模式载体:TCP、UDP、ICS、BLACK")
+	a.cmd.Flags().StringVarP(&model.Config.DstHost, "dsthost", "H", "127.0.0.1", "Host载体")
+	a.cmd.Flags().StringVarP(&model.Config.SrcHost, "srchost", "S", "127.0.0.1", "Host载体")
+	a.cmd.Flags().IntVarP(&model.Config.SrcPort, "sport", "s", 0, "源端口")
+	a.cmd.Flags().IntVarP(&model.Config.Depth, "depth", "d", 1, "循环载体")
+	a.cmd.Flags().StringVarP(&model.Config.ICSMode, "icsmode", "i", "all", "ICS模式选择")
+
+	// auto
+	err := a.cmd.RegisterFlagCompletionFunc(model.MODE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"TCP", "UDP", "ICS", "BLACK"}, cobra.ShellCompDirectiveDefault
+	})
+	err = a.cmd.RegisterFlagCompletionFunc(model.HOST, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = a.cmd.RegisterFlagCompletionFunc(model.DEPTH, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{}, cobra.ShellCompDirectiveDefault
+	})
+	err = a.cmd.RegisterFlagCompletionFunc(model.ICSMODE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return model.PROTOICSMODE, cobra.ShellCompDirectiveDefault
+	})
+	if err != nil {
+	}
+	return a.cmd
+}
+
+func (a *AutoCmd) Execute(config *model.Stream) {
+	dataList := payload.Output.Execute(config.Mode, config.ICSMode)
+	if dataList != nil {
 		for {
-			for _, P := range payload {
+			for _, P := range dataList {
 				time.Sleep(time.Millisecond * 300)
 				select {
-				case _ = <-setting.Signal:
-					logger.Printf("stopped sending a total of %d packets", setting.TotalPacket)
+				case _ = <-settings.Signal:
+					logger.Printf("stopped sending a total of %d packets", settings.TotalPacket)
 					os.Exit(0)
 				case <-time.After(0 * time.Millisecond):
-					setting.TotalPacket += 1
+					settings.TotalPacket += 1
 					config.DstPort = P[0].(int)
 					config.Payload = P[1].(string)
 					config.SrcPort = 0
@@ -37,8 +82,8 @@ func (f *AutoStruct) Execute(config *model.InterfaceModel) {
 					}
 				}
 			}
-			if setting.TotalDepth++; setting.TotalDepth == config.Depth {
-				logger.Fatalln("stopped sending a total of %d packets", setting.TotalPacket)
+			if settings.TotalDepth++; settings.TotalDepth == config.Depth {
+				logger.Fatalln("stopped sending a total of %d packets", settings.TotalPacket)
 			}
 		}
 	}

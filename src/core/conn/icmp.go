@@ -27,7 +27,7 @@ func (i ICMPModel) init() model.Messages {
 
 func (i ICMPModel) Send() model.Messages {
 	if i.Depth == 0 {
-		logger.Fatalln("depth must be greater than 0")
+		logger.Errorln("depth must be greater than 0")
 	}
 	pinger, err := probing.NewPinger(i.DstHost)
 	signal.Notify(settings.Signal, os.Interrupt)

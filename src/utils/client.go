@@ -63,7 +63,7 @@ func NewClient(config *model.Stream) conn.LayerModel {
 	case model.PROTOICMP:
 		return conn.ICMPModel{
 			DstHost: config.DstHost,
-			Depth:   0,
+			Depth:   config.Depth,
 		}
 	case model.PROTOICS:
 		conn_udp := conn.UDPModel{

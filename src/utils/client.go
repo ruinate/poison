@@ -110,16 +110,16 @@ func (c ClientModel) Execute(config *model.Stream) error {
 	client := NewClient(config)
 	result := client.Send()
 	if config.SendMode == model.MAC {
+		if byteResult, ok := result.([]byte); ok {
+			logger.Infof("%s connected to the %s  payload: %#v", config.SrcMAC, config.DstMAC, byteResult)
+		}
 		return nil
 	}
-	//t := reflect.TypeOf(result)
-	//fmt.Printf("Type: %v\n", t)
 	// 判断返回类型
 	switch result.(type) {
 	// 源端口被占用
 	case string:
 		if str, ok := result.(string); ok {
-
 			if strings.Contains(str, model.ConnectionUSEERROR) {
 				return c.Execute(config)
 			} else {

@@ -9,9 +9,13 @@ package service
 import (
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"os/signal"
 	"poison/src/common"
+	"poison/src/common/settings"
 	"poison/src/model"
 	"poison/src/utils"
+	"syscall"
+	"time"
 )
 
 type EtherCmd struct {
@@ -39,6 +43,7 @@ func (e *EtherCmd) InitCmd() *cobra.Command {
 	e.cmd.Flags().StringVarP(&model.Config.SrcMAC, "srcmac", "S", "66:77:88:99:aa:bb", "源目的MAC地址")
 	e.cmd.Flags().StringVarP(&model.Config.Payload, "payload", "p", common.RandStr(20), "数据载体")
 	e.cmd.Flags().IntVarP(&model.Config.Depth, "depth", "d", 1, "循环载体")
+	e.cmd.Flags().Uint16VarP(&model.Config.EtherFlag, "flag", "f", 0x0800, "Ethernet协议头标识")
 	inter := common.TotalDevice()
 	err := e.cmd.RegisterFlagCompletionFunc(model.REPLAYINTERFACE, func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return inter, cobra.ShellCompDirectiveDefault
@@ -49,5 +54,22 @@ func (e *EtherCmd) InitCmd() *cobra.Command {
 }
 
 func (e *EtherCmd) Execute(config *model.Stream) {
-	return
+	signal.Notify(settings.Signal, syscall.SIGINT, syscall.SIGTERM)
+	for {
+		time.Sleep(time.Millisecond * 300)
+		select {
+		case _ = <-settings.Signal:
+			logger.Fatalln("stopped sending a total of %d packets", settings.TotalPacket)
+		case <-time.After(0 * time.Millisecond):
+			settings.TotalPacket += 1
+			settings.TotalDepth += 1
+			if err := utils.Client.Execute(config); err != nil {
+				logger.Errorln(err)
+			}
+			if settings.TotalDepth == config.Depth {
+				logger.Debugf("stopped sending a total of %d packets", settings.TotalPacket)
+				return
+			}
+		}
+	}
 }

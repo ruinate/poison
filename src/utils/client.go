@@ -10,7 +10,6 @@ import (
 	logger "github.com/sirupsen/logrus"
 	"math/rand"
 	"net"
-	"os"
 	"poison/src/common"
 	"poison/src/core/conn"
 	"poison/src/model"
@@ -27,6 +26,8 @@ func NewClient(config *model.Stream) conn.LayerModel {
 	payload := common.SwitchHex(config.Payload)
 	if config.SrcPort == 0 {
 		config.TmpSrcPort = rand.Intn(65535-10254) + 1024
+	} else {
+		config.TmpSrcPort = config.SrcPort
 	}
 	if config.SrcHost == "127.0.0.1" {
 		config.SrcHost = "0.0.0.0"
@@ -117,33 +118,19 @@ func (c ClientModel) Execute(config *model.Stream) error {
 	}
 	// 判断返回类型
 	switch result.(type) {
-	// 源端口被占用
-	case string:
-		if str, ok := result.(string); ok {
-			if strings.Contains(str, model.ConnectionUSEERROR) {
-				return c.Execute(config)
-			} else {
-				logger.Infof("%s connected to the %s  port: %d payload: %#v", config.Mode, config.DstHost, config.DstPort, result)
-			}
-		}
 	// 服务器端口未监听
-	case *net.OpError:
-		if opErr, ok := result.(*net.OpError); ok && opErr.Op == "dial" {
-			if syscallErr, ok := opErr.Err.(*os.SyscallError); ok {
-				if syscallErr.Err.Error() == "connection refused" {
-					logger.Errorf("端口-%d: 连接被拒绝,远程主机可能没有在监听指定的端口", config.DstPort)
-					return nil
-				}
+	case error:
+		if opErr, ok := result.(*net.OpError); ok {
+			if strings.Contains(opErr.Error(), model.ConnectionUSEERROR) {
+				logger.Errorf("%s connected to the %s  port: %d payload: %s", config.Mode, config.DstHost, config.DstPort, opErr)
+				return c.Execute(config)
 			}
+
+			logger.Errorf("%s connected to the %s  port: %d payload: %s", config.Mode, config.DstHost, config.DstPort, opErr)
 		}
-	// 返回数据为空
-	case nil:
-		logger.Infof("%s connected to the %s  port: %d payload: %#v", config.Mode, config.DstHost, config.DstPort, config.Payload)
 	// 默认打印
 	default:
 		logger.Infof("%s connected to the %s  port: %d payload: %#v", config.Mode, config.DstHost, config.DstPort, result)
-
 	}
-
 	return nil
 }

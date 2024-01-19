@@ -61,6 +61,7 @@ func (r *RPC) method() error {
 }
 func (r *RPC) Start(config *model.Stream, result *error) error {
 	r.config = config
+	logger.Println(r.config)
 	if err := r.method(); err != nil {
 		*result = err
 		return err

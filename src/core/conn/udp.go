@@ -27,11 +27,8 @@ func (u UDPModel) init() model.Messages {
 func (u UDPModel) Send() model.Messages {
 	lAddr := &net.UDPAddr{IP: net.ParseIP(u.SrcHost), Port: u.SrcPort}
 	rAddr := &net.UDPAddr{IP: net.ParseIP(u.DstHost), Port: u.DstPort}
-	conn, err := net.DialUDP("udp", lAddr, rAddr)
-	if err != nil {
-		return nil
-	}
+	conn, _ := net.DialUDP("udp", lAddr, rAddr)
 	defer u.Close(conn)
-	_, err = conn.Write(u.Payload)
+	_, _ = conn.Write(u.Payload)
 	return string(u.Payload[:])
 }

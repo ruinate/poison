@@ -122,15 +122,14 @@ func (c ClientModel) Execute(config *model.Stream) error {
 	case error:
 		if opErr, ok := result.(*net.OpError); ok {
 			if strings.Contains(opErr.Error(), model.ConnectionUSEERROR) {
-				logger.Errorf("%s connected to the %s  port: %d payload: %s", config.Mode, config.DstHost, config.DstPort, opErr)
+				logger.Errorf("%s connected to the %s  port: %d result: %s", config.Mode, config.DstHost, config.DstPort, opErr)
 				return c.Execute(config)
 			}
-
-			logger.Errorf("%s connected to the %s  port: %d payload: %s", config.Mode, config.DstHost, config.DstPort, opErr)
+			logger.Errorf("%s connected to the %s  port: %d result: %s", config.Mode, config.DstHost, config.DstPort, opErr)
 		}
 	// 默认打印
 	default:
-		logger.Infof("%s connected to the %s  port: %d payload: %#v", config.Mode, config.DstHost, config.DstPort, result)
+		logger.Infof("%s connected to the %s  port: %d result: %#v", config.Mode, config.DstHost, config.DstPort, result)
 	}
 	return nil
 }
